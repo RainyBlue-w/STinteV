@@ -3,10 +3,6 @@
   height: 6vh
 }
 
-.dmc-Grid-center {
-  align-items: center;
-  justify-content: center;
-}
 
 /* figures */
 .dcc-Graph-scatter3d {
@@ -20,28 +16,6 @@
 .dcc-Graph-violin-ctp {
   height: 100vh
 }
-
-.dmc-ChipGroup-legend {
-  overflow-y: auto;
-  max-height: 75vh;
-}
-
-/* dmc-Tabs-inline */
-.dmc-Tabs-inline .mantine-Tabs-tabLabel {
-  /* writing-mode: vertical-rl; */
-  /* transform: rotate(-0.5turn); */
-  font-size: 0.8rem;
-  font-weight: normal;
-}
-
-.dmc-Tabs-inline .mantine-Tabs-tab{
-  padding-top: 3px;
-}
-
-.dmc-Tabs-inline .mantine-Tabs-panel {
-  padding-top: 3px;
-}
-
 
 .fac-AntdSpace-sideBar {
   position: fixed;
@@ -59,47 +33,7 @@
   background: '#ffffff';
 }
 
-.dmc-accordionMultiple {
-  /* overflow-y: auto;
-  max-height: 96vh; */
-}
 
-.dmc-Text-setting-title {
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.dmc-Text-label {
-  font-size: 1rem;
-  font-family: Segoe UI; 
-  font-weight: normal
-}
-
-.dmc-Text-label .dmc-Text-label-center {
-  text-align: center;
-  /* font-weight: bold; */
-}
-
-.dmc-Text-drawerTitle {
-  font-size: 1.3rem;
-}
-
-.dmc-Text-drawerSubTitle {
-  font-size: 0.7rem;
-  color: gray;
-  font-style: italic;
-}
-
-.dmc-Text-sidebar-title {
-  font-size: 1.2rem;
-  font-family: Segoe UI;
-}
-
-.dmc-Text-sidebar-tips {
-  font-size: 1.0rem;
-  font-style: italic;
-  color: gray
-}
 
 /* 设置滚动条的样式 */
 ::-webkit-scrollbar {
@@ -121,8 +55,3 @@
   background: #333;
 }
 
-.dmc-divider-sidebar-inline .mantine-Divider-label{
-  font-size: 1rem;
-  font-weight: bold;
-  color: #4080ee;
-}

@@ -1,0 +1,39 @@
+
+.fac-Sider {
+    background-color: #FFFFFF;
+    border: 1px solid #dee2e6;
+    height: 100vh; 
+    overflow-y: scroll;
+}
+
+.fac-Content {
+    background-color: #FFFFFF;
+}
+
+.fac-Layout {
+    height: calc(100vh - 90px);
+    background-color: #FFFFFF;
+}
+
+.fac-Layout .ant-layout-sider-trigger {
+    /* set the position of sidebar trigger button */
+    /* position: absolute !important; */
+    background-color: #177d9a;
+    border-radius: 10px;
+}
+
+.fuc-GirdItem {
+    display: block;
+    justify-content: center;
+    align-items: center;
+    overflow: clip;
+}
+
+.fuc-Grid {
+    width: calc(100vw - 260px);
+}
+
+.fuc-Div-plotPanel-settings {
+    border-radius: 10px;
+    margin-bottom: 5px;
+}

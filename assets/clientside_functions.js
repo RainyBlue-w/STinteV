@@ -281,5 +281,15 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
         },
 
+    },
+
+    plot_panel_2d: {
+        plotpanel_sync_shadow_between_card_and_item: function (isHovering_card, isHovering_item) {
+            if (isHovering_card || isHovering_item) {
+                return ['always-shadow', 'always-shadow']
+            } else {
+                return ['no-shadow', 'no-shadow']
+            }
+        }
     }
 });

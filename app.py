@@ -4,10 +4,9 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_extensions.enrich import html, DashProxy, LogTransform, ServersideOutputTransform, MultiplexerTransform
 
-
 dash._dash_renderer._set_react_version('18.2.0') # needed for dash_mantine_components v0.14
 
-stylesheets = [
+_stylesheets = [
     dbc.themes.BOOTSTRAP,
     "https://unpkg.com/@mantine/dates@7/styles.css",
     "https://unpkg.com/@mantine/code-highlight@7/styles.css",
@@ -17,19 +16,7 @@ stylesheets = [
     "https://unpkg.com/@mantine/nprogress@7/styles.css",
 ]
 
-dash_app = DashProxy(
-  __name__, 
-  external_stylesheets=stylesheets,
-  external_scripts = [
-    {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'}
-  ],
-  transforms=[
-    LogTransform(), ServersideOutputTransform(), MultiplexerTransform()
-  ],
-  use_pages=True,
-)
-
-header = dbc.NavbarSimple(
+_navbar = dbc.NavbarSimple(
     [
         dbc.DropdownMenu(
             children=[
@@ -47,16 +34,29 @@ header = dbc.NavbarSimple(
     className='dbc-Navbar-main'
 )
 
-dash_app.layout = dmc.MantineProvider(
+dashapp = DashProxy(
+  __name__, 
+  external_stylesheets=_stylesheets,
+  external_scripts = [
+    {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'}
+  ],
+  transforms = [
+    LogTransform(), ServersideOutputTransform(), MultiplexerTransform()
+  ],
+  prevent_initial_callbacks=True,
+  use_pages=True,
+)
+
+dashapp.layout = dmc.MantineProvider(
     [
         dmc.NotificationProvider(),
-        header,
+        _navbar,
         dash.page_container
     ]
 )
 
 if __name__ == "__main__":
-    dash_app.run(
+    dashapp.run(
 
         host='10.86.60.31',
         port='8055',

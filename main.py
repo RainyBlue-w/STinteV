@@ -1,6 +1,6 @@
 # from fastapi import FastAPI
 # from fastapi.middleware.wsgi import WSGIMiddleware
-# from app import dash_app
+# from app import dashapp
 # import argparse
 
 # # args
@@ -16,7 +16,7 @@
 
 # # app
 # app = FastAPI()
-# app.mount(args.path_mount, WSGIMiddleware(dash_app.server))
+# app.mount(args.path_mount, WSGIMiddleware(dashapp.server))
 
 # if __name__ == "__main__":
 #     import uvicorn
