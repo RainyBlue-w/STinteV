@@ -11,17 +11,25 @@ from dash import dcc
 from dash import ALL, MATCH, Patch, ctx
 from dash.exceptions import PreventUpdate
 
+import anndata
+
+import os
+import re
 import uuid
 
-from page_templates.template_2d.components.plot_panel import PlotPanel
+from .components import PlotPanel
 
-class TabOverview:
+class TabOverview():
     
     # const
     _width_sider = 250
     _width_sider_collapsed = 60
     _width_drawer = 250
     _rowHeight_plot_panel = 350
+    
+    # data
+    
+    dataset = {}
     
     # widgets
     
@@ -37,7 +45,15 @@ class TabOverview:
     tab = None
     
     # Tab init
-    def __init__(self) -> None:
+    def __init__(self, path_dataset: str) -> None:
+        
+        self.dataset = [
+            anndata.read_h5ad(
+                filename=os.path.join(path_dataset, file), 
+                backed='r'
+            ) 
+            for file in os.listdir(path_dataset) if file.endswith('.h5ad')
+        ],
         
         self.drawer_plot_panels = html.Div([
             dmc.Drawer(
