@@ -11,13 +11,10 @@ from dash import dcc
 from dash import ALL, MATCH, Patch, ctx
 from dash.exceptions import PreventUpdate
 
-import anndata
-
-import os
-import re
 import uuid
 
-from .components import PlotPanel
+from ..components import PlotPanel
+from .._io import read_dataset
 
 class TabOverview():
     
@@ -27,12 +24,8 @@ class TabOverview():
     _width_drawer = 250
     _rowHeight_plot_panel = 350
     
-    # data
-    
-    dataset = {}
-    
     # widgets
-    
+    store_dataset = None
     control_plot_settings = None
     
     control_plot_panels = None
@@ -47,14 +40,14 @@ class TabOverview():
     # Tab init
     def __init__(self, path_dataset: str) -> None:
         
-        self.dataset = [
-            anndata.read_h5ad(
-                filename=os.path.join(path_dataset, file), 
-                backed='r'
-            ) 
-            for file in os.listdir(path_dataset) if file.endswith('.h5ad')
-        ],
-        
+        # store(local) for dataset 
+        self.store_dataset = dcc.Store(
+            id = 'STORE_dataset-overview-2d',
+            storage_type = 'local',
+            data = read_dataset(path_dataset),
+        )
+
+        # drawer for setting plot panels
         self.drawer_plot_panels = html.Div([
             dmc.Drawer(
                 id = 'DRAWER_setting_panels-overview-2d',
@@ -84,7 +77,8 @@ class TabOverview():
                 ]
             )
         ])
-        
+
+        # accordion item in sider (Plot settings)
         self.control_plot_settings = dmc.AccordionItem(
             children=[
                 dmc.AccordionControl(
@@ -147,6 +141,7 @@ class TabOverview():
             value='control_plot_settings'
         )
         
+        # accordion item in sider (Plot panels)
         self.control_plot_panels = dmc.AccordionItem(
             children=[
                 dmc.AccordionControl(
@@ -185,6 +180,7 @@ class TabOverview():
             value='control_plot_panels'
         )
 
+        # sider in left
         self.sider = fac.Sider(
             collapsible = False,
             collapsedWidth = self._width_sider_collapsed,
@@ -203,6 +199,7 @@ class TabOverview():
             className='fac-Sider'
         )
 
+        # content in right
         self.content = fac.Content(
             [
                 dcc.Store(
@@ -236,6 +233,7 @@ class TabOverview():
             className='fac-Content'
         )
 
+        # whole tab
         self.tab = dbc.Tab(
             label = 'Overview',
             tab_id = 'TAB-overview-2d',
@@ -251,6 +249,7 @@ class TabOverview():
                 )
             ]    
         )
+
 
 #region ----Callbacks----
 

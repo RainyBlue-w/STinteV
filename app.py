@@ -3,8 +3,11 @@ import dash._dash_renderer
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_extensions.enrich import html, DashProxy, LogTransform, ServersideOutputTransform, MultiplexerTransform
-
+from dash_extensions.enrich import RedisBackend
+   
 dash._dash_renderer._set_react_version('18.2.0') # needed for dash_mantine_components v0.14
+
+redis_backend = RedisBackend()
 
 _stylesheets = [
     dbc.themes.BOOTSTRAP,
@@ -41,7 +44,7 @@ dashapp = DashProxy(
     {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'}
   ],
   transforms = [
-    LogTransform(), ServersideOutputTransform(), MultiplexerTransform()
+    LogTransform(), ServersideOutputTransform(backends=[redis_backend]), MultiplexerTransform()
   ],
   prevent_initial_callbacks=True,
   use_pages=True,
