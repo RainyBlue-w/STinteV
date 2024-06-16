@@ -1,18 +1,26 @@
 from curses import panel
+import anndata
 from dash_extensions.enrich import Output, Input, html, callback, clientside_callback, ClientsideFunction
 from dash import dcc, ALL, MATCH, Patch
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 import feffery_utils_components as fuc
+import plotly
 import plotly.express as px
 import plotly.graph_objects as go
+
+from typing import Dict
+
+from .._plot import *
+
+
 
 class PlotPanel:
     
     '''
     class to generate a plot panel, including the graph and the settings
     '''
-    
+
     # const
     _index = None
     _width_drawer_card = 220
@@ -22,12 +30,19 @@ class PlotPanel:
     grid_item=None
     settings=None
     
-    def __init__(self, index: str) -> None:
+    # figure
+    _figure = None
+    
+    def __init__(
+        self, 
+        index: str, 
+        figure: go.Figure = None
+    ) -> None:
         '''
         index: str
             uuid to make unique
         '''
-        
+        self._figure = figure
         self._index = index
         
         self.grid_item = fuc.FefferyGridItem(
@@ -41,14 +56,7 @@ class PlotPanel:
                     children=[
                         dcc.Graph(
                             id={'type': 'PLOTPANEL_item_graph-2d', 'index': self._index},
-                            figure=px.scatter(x=[1], y=[1]).update_layout(
-                                    # plot_bgcolor = '#ffffff', 
-                                    uirevision='constant',
-                                    coloraxis = {
-                                        'colorbar' : {'tickformat': '4.2f'}
-                                    },
-                                    margin=dict(l=0, r=0, t=0, b=0), autosize=True
-                                ).update_xaxes(visible=False).update_yaxes(visible=False),
+                            figure=self._figure,
                             responsive = True,
                             config = {
                                 'autosizable': True,
@@ -130,6 +138,7 @@ class PlotPanel:
                 )
             ],
         )
+
 
 clientside_callback(
     ClientsideFunction(

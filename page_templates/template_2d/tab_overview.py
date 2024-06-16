@@ -13,8 +13,9 @@ from dash.exceptions import PreventUpdate
 
 import uuid
 
-from ..components import PlotPanel
-from .._io import read_dataset
+from stintev.page_templates._io.read import read_dataset
+from stintev.page_templates._plot import *
+from stintev.page_templates.components.plot_panel import PlotPanel
 
 class TabOverview():
     
@@ -31,14 +32,30 @@ class TabOverview():
     control_plot_panels = None
     drawer_plot_panels = None
     _n_init_plot_panels = 2
-    _init_plot_panels = [ PlotPanel(uuid.uuid1().hex) for i in range(_n_init_plot_panels) ]
+    _init_plot_panels = None
     
     sider = None
     content = None
     tab = None
     
+    # data
+    dataset = None
+
     # Tab init
     def __init__(self, path_dataset: str) -> None:
+    
+        self.dataset = read_dataset(path_dataset)
+        
+        self._init_plot_panels = [ 
+            PlotPanel(
+                index=uuid.uuid1().hex, 
+                figure=plot_feature_embedding(self.dataset[0], 'T', 'X_sagittal')
+            ),
+            PlotPanel(
+                index=uuid.uuid1().hex, 
+                figure=plot_metadata_embedding(self.dataset[0], 'celltype', 'X_sagittal')
+            ),
+        ]
         
         # store(local) for dataset 
         self.store_dataset = dcc.Store(
@@ -134,7 +151,7 @@ class TabOverview():
                                 ],
                                 justify='center', gutter=3, className='dmc-Grid-center'
                             ),     
-                        ])
+                        ]),
                     ]
                 )
             ],
@@ -215,12 +232,12 @@ class TabOverview():
                     ],
                     layouts= [ 
                         dict(
-                            i=p._index, x = (i%3)*2, y = i//3, 
-                            w=2, h=1, maxH=1
+                            i=p._index, x = (i%3)*16, y = i//3, 
+                            w=16, h=1, maxH=1
                         ) 
                         for i, p in enumerate(self._init_plot_panels)
                     ],
-                    cols=6,
+                    cols=48,
                     rowHeight=self._rowHeight_plot_panel,
                     margin=[5, 5],
                     containerPadding=[0,0],
@@ -335,8 +352,8 @@ def add_plot_panel(add, delete, uuid_list):
     for i, index in enumerate(uuid_list):
         layouts.append(
             dict(
-                i=index, x = (i%3)*2, y = i//3, 
-                w=2, h=1, maxH=1
+                i=index, x = (i%3)*16, y = i//3, 
+                w=16, h=1, maxH=1
             ) 
         )
 
