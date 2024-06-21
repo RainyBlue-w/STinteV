@@ -1,21 +1,20 @@
 from dash.dash_table.Format import Format, Group, Scheme, Symbol
 from dash_extensions.enrich import html
+import dash_extensions.enrich
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import feffery_antd_components.alias as fac
 import feffery_utils_components as fuc
 
-from dash_extensions.enrich import Output, Input, State, callback, clientside_callback, ClientsideFunction, callback_context
 from dash import dcc
-from dash import ALL, MATCH, Patch, ctx
-from dash.exceptions import PreventUpdate
 
 import uuid
+import os
 
 from stintev.page_templates._io.read import read_dataset
 from stintev.page_templates._plot import *
-from stintev.page_templates.components.plot_panel import PlotPanel
+from stintev.page_templates.template_2d.plot_panel import PlotPanel
 
 class TabOverview():
     
@@ -42,35 +41,39 @@ class TabOverview():
     dataset = None
 
     # Tab init
-    def __init__(self, path_dataset: str) -> None:
+    def __init__(self, path_server_folder: str) -> None:
     
-        self.dataset = read_dataset(path_dataset)
+        public_dataset_folder = os.path.join(path_server_folder, 'datasets', 'public')
+        
+        self.dataset = read_dataset(
+            os.path.join(public_dataset_folder, 'spatial'), # tmp
+            backed='r'
+        )
         
         self._init_plot_panels = [ 
             PlotPanel(
-                index=uuid.uuid1().hex, 
-                figure=plot_feature_embedding(self.dataset[0], 'T', 'X_sagittal')
+                index=uuid.uuid1().hex,
+                dataset = self.dataset,
+                adata = list(self.dataset.keys())[0],
+                init_figure = 'feature',
+                init_figure_params = dict(feature='T', embedding='X_sagittal')
             ),
             PlotPanel(
-                index=uuid.uuid1().hex, 
-                figure=plot_metadata_embedding(self.dataset[0], 'celltype', 'X_sagittal')
+                index=uuid.uuid1().hex,
+                dataset = self.dataset,
+                adata = list(self.dataset.keys())[0],
+                init_figure = 'metadata',
+                init_figure_params = dict(column='celltype', embedding='X_sagittal')
             ),
         ]
-        
-        # store(local) for dataset 
-        self.store_dataset = dcc.Store(
-            id = 'STORE_dataset-overview-2d',
-            storage_type = 'local',
-            data = read_dataset(path_dataset),
-        )
 
         # drawer for setting plot panels
         self.drawer_plot_panels = html.Div([
             dmc.Drawer(
-                id = 'DRAWER_setting_panels-overview-2d',
+                id = 'DRAWER_setting_panels-overview',
                 className = 'dmc-Drawer-plotPanels',
                 size = f'{self._width_drawer}px',
-                closeOnClickOutside = False,
+                closeOnClickOutside = True,
                 lockScroll = False,
                 withOverlay = False,
                 title = dmc.Stack(
@@ -81,13 +84,13 @@ class TabOverview():
                 ),
                 children = [ 
                     html.Div(
-                        id = 'DRAWER_setting_panels_div-overview-2d',
+                        id = 'DRAWER_setting_panels_div-overview',
                         children=[
-                            self._init_plot_panels[i].settings for i in range( self._n_init_plot_panels ) 
+                            self._init_plot_panels[i].sider_settings for i in range( self._n_init_plot_panels ) 
                         ]
                     ),
                     dmc.Button(
-                        "Add panel", id='BUTTON_setting_panels_add-overview-2d',
+                        "Add panel", id='BUTTON_setting_panels_add-overview',
                         color='teal', fullWidth=True,
                         leftSection=DashIconify(icon="fluent:add-square-20-regular", width=20)
                     )
@@ -172,7 +175,7 @@ class TabOverview():
                                     children = [
                                         dmc.NumberInput(
                                             label = 'Row height',
-                                            id = 'NUMBERINPUT_setting_panels-overview-2d',
+                                            id = 'NUMBERINPUT_setting_panels-overview',
                                             description = 'The minimal height of plot panel',
                                             value=self._rowHeight_plot_panel,
                                             min=200,
@@ -184,7 +187,7 @@ class TabOverview():
                                 ),
                                 dmc.GridCol(
                                     children = [
-                                        dmc.Button('Setting panels', fullWidth=True, id='BUTTON_setting_panels-overview-2d'),
+                                        dmc.Button('Setting panels', fullWidth=True, id='BUTTON_setting_panels-overview'),
                                     ],
                                     span=12
                                 )
@@ -200,7 +203,6 @@ class TabOverview():
         # sider in left
         self.sider = fac.Sider(
             collapsible = False,
-            collapsedWidth = self._width_sider_collapsed,
             width = self._width_sider,
             children = [
                 dmc.Accordion(
@@ -220,13 +222,14 @@ class TabOverview():
         self.content = fac.Content(
             [
                 dcc.Store(
-                    id='STORE_plotPanelsCurUUID-overview-2d', 
+                    id='STORE_plotPanelsCurUUID-overview', 
                     data = [
                         self._init_plot_panels[i]._index for i in range( self._n_init_plot_panels )
                     ]
                 ),
                 fuc.FefferyGrid(
-                    id = 'FUCGRID_content-overview-2d',
+                    id = 'FUCGRID_content-overview',
+                    className='fuc-Grid',
                     children=[
                         self._init_plot_panels[i].grid_item for i in range( self._n_init_plot_panels )
                     ],
@@ -243,7 +246,6 @@ class TabOverview():
                     containerPadding=[0,0],
                     autoSize=True,
                     isBounded=True,
-                    className='fuc-Grid',
                     compactType = 'horizontal',
                 )
             ],
@@ -253,7 +255,7 @@ class TabOverview():
         # whole tab
         self.tab = dbc.Tab(
             label = 'Overview',
-            tab_id = 'TAB-overview-2d',
+            tab_id = 'TAB-overview',
             children = [
                 fac.Layout(
                     [
@@ -266,100 +268,3 @@ class TabOverview():
                 )
             ]    
         )
-
-
-#region ----Callbacks----
-
-# open the drawer for setting panels
-clientside_callback(
-    """
-    function(n_clicks){
-        return true
-    }
-    """,
-    Output('DRAWER_setting_panels-overview-2d', 'opened'),
-    Input('BUTTON_setting_panels-overview-2d', 'n_clicks'),
-)
-
-# update the rowHeight for PlotPanel-items
-@callback(
-    output = dict(
-        styles = Output({'type': 'PLOTPANEL_item_graph-2d', 'index': ALL}, 'style'),
-        rowHeight = Output('FUCGRID_content-overview-2d', 'rowHeight')
-    ),
-    inputs = [
-        Input('NUMBERINPUT_setting_panels-overview-2d', 'value')
-    ],
-    prevent_initial_call = False,
-    suppress_callback_exceptions=True
-)
-def update_height_for_plot_panel_items(height):
-
-    n_outputs = len(callback_context.outputs_grouping['styles'])
-    return {
-        'styles': [ {'height': [f'{height-50}px']} ] * n_outputs,
-        'rowHeight': height
-    }
-
-# add & delete PlotPanel
-
-@callback(
-   Output('FUCGRID_content-overview-2d', 'children', allow_duplicate=True),
-   Output('DRAWER_setting_panels_div-overview-2d', 'children', allow_duplicate=True),
-   Output('STORE_plotPanelsCurUUID-overview-2d', 'data', allow_duplicate=True),
-   Output('FUCGRID_content-overview-2d', 'layouts'),
-   Output('BUTTON_setting_panels_add-overview-2d', 'disabled'),
-   
-   Input('BUTTON_setting_panels_add-overview-2d', 'n_clicks'),
-   Input({'type': 'PLOTPANEL_settings_button_delete-2d', 'index': ALL}, 'n_clicks'),
-   State('STORE_plotPanelsCurUUID-overview-2d', 'data'),
-   suppress_callback_exceptions=True,
-   prevent_initial_call=True
-)
-def add_plot_panel(add, delete, uuid_list):
-    
-    import uuid
-    
-    tid = ctx.triggered_id
-    children_grid = Patch()
-    children_drawer = Patch()
-    
-    if tid == 'BUTTON_setting_panels_add-overview-2d':
-        if add and (len(uuid_list) <= 5):
-            next_PlotPanel = PlotPanel(uuid.uuid1().hex)
-            children_grid.append(
-                next_PlotPanel.grid_item
-            )
-            children_drawer.append(
-                next_PlotPanel.settings
-            )
-            uuid_list.append(
-                next_PlotPanel._index
-            )
-            
-    elif ('type' in tid) and (tid['type'] == 'PLOTPANEL_settings_button_delete-2d') and (len(uuid_list) > 1):
-
-        del_index = tid['index']
-        for i, index in enumerate(uuid_list):
-            if index == del_index:
-                del children_grid[i]
-                del children_drawer[i]
-                del uuid_list[i]
-    else:
-        raise PreventUpdate
-
-    layouts = []
-    for i, index in enumerate(uuid_list):
-        layouts.append(
-            dict(
-                i=index, x = (i%3)*16, y = i//3, 
-                w=16, h=1, maxH=1
-            ) 
-        )
-
-    if len(uuid_list) == 6:
-        ban_button = True
-    else:
-        ban_button = False
-        
-    return  children_grid, children_drawer, uuid_list, layouts, ban_button

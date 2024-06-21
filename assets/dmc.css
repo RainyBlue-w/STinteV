@@ -82,3 +82,21 @@
 .dmc-Drawer-plotPanels {
   overflow-y: scroll;
 }
+
+.Select-menu-outer {
+  height: inline-15px;
+  display: block;
+}
+
+.dcc-DropDown-PlotPanel-item-select-column {
+  font-size: 12px;
+}
+
+.dcc-DropDown-PlotPanel-item-select-column .Select-input,.Select-control{
+    height: 27px;
+    line-height: 27px;
+}
+
+.dcc-DropDown-PlotPanel-item-label-column{
+  font-size: 12px
+}

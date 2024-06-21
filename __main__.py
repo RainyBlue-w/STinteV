@@ -7,8 +7,6 @@ from dash_extensions.enrich import RedisBackend
    
 dash._dash_renderer._set_react_version('18.2.0') # needed for dash_mantine_components v0.14
 
-redis_backend = RedisBackend()
-
 _stylesheets = [
     dbc.themes.BOOTSTRAP,
     "https://unpkg.com/@mantine/dates@7/styles.css",
@@ -44,7 +42,7 @@ dashapp = DashProxy(
     {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'}
   ],
   transforms = [
-    LogTransform(), ServersideOutputTransform(backends=[redis_backend]), MultiplexerTransform()
+    LogTransform(), ServersideOutputTransform(), MultiplexerTransform()
   ],
   prevent_initial_callbacks=True,
   use_pages=True,
@@ -60,7 +58,6 @@ dashapp.layout = dmc.MantineProvider(
 
 if __name__ == "__main__":
     dashapp.run(
-
         host='10.86.60.31',
         port='8055',
         threaded=True,

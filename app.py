@@ -60,10 +60,9 @@ dashapp.layout = dmc.MantineProvider(
 
 if __name__ == "__main__":
     dashapp.run(
-
         host='10.86.60.31',
         port='8055',
         threaded=True,
         proxy=None,
-        debug=True
+        debug=False
     )

@@ -22,6 +22,16 @@
     border-radius: 10px;
 }
 
+    
+.fuc-Grid {
+    width: calc(100vw - 260px);
+}
+
+.fuc-Grid .feffery-grid-item-dragger{
+    /* dragger size */
+    width: 24px;
+}
+
 .fuc-GirdItem {
     display: block;
     justify-content: center;
@@ -29,11 +39,11 @@
     overflow: clip;
 }
 
-.fuc-Grid {
-    width: calc(100vw - 260px);
-}
-
 .fuc-Div-plotPanel-settings {
     border-radius: 10px;
     margin-bottom: 5px;
+}
+
+.fuc-div-plotPanel-gridItem {
+    margin: -25px 0 0 0;
 }
