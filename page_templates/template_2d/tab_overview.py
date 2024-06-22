@@ -42,29 +42,10 @@ class TabOverview():
 
     # Tab init
     def __init__(self, path_server_folder: str) -> None:
-    
-        public_dataset_folder = os.path.join(path_server_folder, 'datasets', 'public')
-        
-        self.dataset = read_dataset(
-            os.path.join(public_dataset_folder, 'spatial'), # tmp
-            backed='r'
-        )
-        
+                    
         self._init_plot_panels = [ 
-            PlotPanel(
-                index=uuid.uuid1().hex,
-                dataset = self.dataset,
-                adata = list(self.dataset.keys())[0],
-                init_figure = 'feature',
-                init_figure_params = dict(feature='T', embedding='X_sagittal')
-            ),
-            PlotPanel(
-                index=uuid.uuid1().hex,
-                dataset = self.dataset,
-                adata = list(self.dataset.keys())[0],
-                init_figure = 'metadata',
-                init_figure_params = dict(column='celltype', embedding='X_sagittal')
-            ),
+            PlotPanel(index=uuid.uuid1().hex),
+            PlotPanel(index=uuid.uuid1().hex),
         ]
 
         # drawer for setting plot panels

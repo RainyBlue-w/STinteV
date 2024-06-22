@@ -1,3 +1,4 @@
+from typing import Literal
 from dash.dash_table.Format import Format, Group, Scheme, Symbol
 import dash_extensions
 from dash_extensions.enrich import html
@@ -49,35 +50,10 @@ class TabDataset:
                 )
             ]
         )
-        
-        self.content_public = html.Div(
-            id='TabDataSet-content-public',
-            children=[
-                DatasetList(
-                    path_data_folder=os.path.join(path_server_folder,'datasets','public'),
-                    id_prefix='public'
-                ).list,
-            ]
-        )
-        
-        self.content_private = html.Div(
-            id='TabDataSet-content-private',
-            children=[
-                DatasetList(
-                    path_data_folder=os.path.join(path_server_folder,'datasets','private'),
-                    id_prefix='private'
-                ).list,
-            ]
-        )
-        
-        self.content_upload = html.Div(
-            
-        )
-        
+               
         # store for choosen datasets
         self.store_server_folder = dcc.Store(id = 'STORE_server_folder-dataset', data = path_server_folder)
         self.store_dataset = dcc.Store(id = 'STORE_choosen_dataset-dataset')
-        self.store_dataset_loaded = dcc.Store(id = 'STORE_choosen_dataset_loaded-dataset')
         
         self.tab = dbc.Tab(
             label = 'Dataset',
@@ -85,7 +61,6 @@ class TabDataset:
             children=[
                 self.store_server_folder,
                 self.store_dataset,
-                self.store_dataset_loaded,
                 dmc.Tabs(
                     orientation='vertical',
                     className='dmc-Tabs-dataset',
@@ -114,15 +89,18 @@ class TabDataset:
                             className='dmc-TabsList-sider-dataset'
                         ),
                         dmc.TabsPanel(
-                            children=[self.content_public],
+                            id = 'TABS_panel_public-dataset',
+                            children = [],
                             value = 'public'
                         ),
                         dmc.TabsPanel(
-                            children=[self.content_private],
+                            id = 'TABS_panel_private-dataset',
+                            children = [],
                             value = 'private'
                         ),
                         dmc.TabsPanel(
-                            children=[self.content_upload],
+                            id = 'TABS_panel_upload-dataset',
+                            children = [],
                             value = 'upload'
                         ),
                     ],
@@ -148,3 +126,4 @@ class TabDataset:
         )
         
         return content
+    

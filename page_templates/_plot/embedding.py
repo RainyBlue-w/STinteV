@@ -43,7 +43,7 @@ def plot_feature_embedding(
     
     if adata.obsm[embedding].shape[1] == 2:
         plot = _plot_feature_embedding_2d(adata, feature, embedding, sort, ascending, cmap, **kws)
-    elif adata[embedding].shape[1] == 3:
+    elif adata.obsm[embedding].shape[1] == 3:
         plot = _plot_feature_embedding_3d(adata, feature, embedding, sort, ascending, cmap, **kws)
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
@@ -60,14 +60,12 @@ def plot_metadata_embedding(
     
     if adata.obsm[embedding].shape[1] == 2:
         plot = _plot_metadata_embedding_2d(adata, column, embedding, cmap, **kws)
-    elif adata[embedding].shape[1] == 3:
+    elif adata.obsm[embedding].shape[1] == 3:
         plot = _plot_metadata_embedding_3d(adata, column, embedding, cmap, **kws)
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
     
     return plot
-    
-    return
 
 def _plot_feature_embedding_2d(
     adata: anndata.AnnData,
@@ -134,12 +132,41 @@ def _plot_feature_embedding_3d(
     """
     plot feature on 3D-embedding
     """
+    pdf = pd.DataFrame(adata.obsm[embedding], index=adata.obs_names, columns=['X','Y','Z'])
+    pdf = pd.concat([pdf, adata[:,feature].to_df()], axis=1)
+    if sort is True:
+      pdf = pdf.sort_values(by=feature, ascending=ascending)
+    plot = px.scatter_3d(
+        data_frame = pdf,
+        x = 'X', y = 'Y', z = 'Z',
+        color = feature,
+        color_continuous_scale = cmap,
+        **kws
+    )
+    plot.update_traces(marker_size=2, marker_opacity=1)
+    plot.update_layout(
+      margin=dict(l=0, r=0, t=0, b=0),
+      plot_bgcolor = '#ffffff', 
+      uirevision='constant',
+      coloraxis = {
+        'colorbar' : {'tickformat': '4.2f'}
+      },
+      scene = dict(
+          xaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
+                       gridcolor='gray', nticks=6),
+          yaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
+                       gridcolor='gray', nticks=6),
+          zaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
+                       gridcolor='gray', nticks=6),
+          bgcolor = 'white',
+          camera = dict(projection = dict(type='orthographic') ),
+          aspectmode = 'data'
+      )
+    )
+    # plot.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1],
+    #                                            font_size = 20)) 
+    return plot
 
-
-    
-    
-
-    return
 
 def _plot_metadata_embedding_2d(
     adata: anndata.AnnData,
@@ -183,7 +210,38 @@ def _plot_metadata_embedding_3d(
     **kws
 ) -> go.Figure:
     
-    return
+    pdf = pd.DataFrame(adata.obsm[embedding], index=adata.obs_names, columns=['X', 'Y', 'Z'])
+    pdf = pd.concat([ pdf, adata.obs[column] ], axis=1)
+    pdf = pdf.sort_values(by=column)
+    plot = px.scatter_3d(
+        data_frame = pdf,
+        x = 'X', y = 'Y', z='Z', color = column,
+        color_discrete_map = cmap,
+        **kws
+    )
+    plot.update_traces(marker_size=2, marker_opacity=1)
+    plot.update_layout(
+      margin=dict(l=0, r=0, t=0, b=0),
+      plot_bgcolor = '#ffffff', 
+      uirevision='constant',
+      legend_itemsizing = 'constant',
+      coloraxis = {
+        'colorbar' : {'tickformat': '4.2f'}
+      },
+      scene = dict(
+          xaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
+                       gridcolor='gray', nticks=6),
+          yaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
+                       gridcolor='gray', nticks=6),
+          zaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
+                       gridcolor='gray', nticks=6),
+          bgcolor = 'white',
+          camera = dict(projection = dict(type='orthographic') ),
+          aspectmode = 'data'
+      )
+    )
+
+    return plot
 
 
 if __name__ == '__main__':

@@ -24,6 +24,7 @@ class DatasetList:
         
         self.list = dmc.CheckboxGroup(
             id={'type': 'DatasetList-checkboxGroup', 'index': id_prefix},
+            persistence = 'local',
             value=[],
             children=dmc.Grid(
                 children=[

@@ -4,10 +4,11 @@ from dash import dcc, ALL, MATCH, Patch
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 import feffery_utils_components as fuc
+import feffery_antd_components.alias as fac
 import plotly.express as px
 import plotly.graph_objects as go
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 from stintev.page_templates._io import *
 from stintev.page_templates._plot import *
@@ -33,31 +34,13 @@ class PlotPanel:
     def __init__(
         self, 
         index: str, 
-        dataset: Dict[str, anndata.AnnData],
-        adata: str,
-        init_figure: str,
-        init_figure_params: Dict
+        init_samples: List = None
     ) -> None:
         '''
         index: str
             uuid to make unique
         '''
         self._index = index
-        
-        if init_figure == 'feature':
-            self._figure = plot_feature_embedding(dataset[adata], **init_figure_params)
-            options_column = sorted(
-                [{'value': column, 'label': column} for column in dataset[adata].var_names],
-                key = lambda x: x['label']
-            )
-            value_column = init_figure_params['feature']
-        elif init_figure == 'metadata':
-            self._figure = plot_metadata_embedding(dataset[adata], **init_figure_params)
-            options_column = sorted(
-                [{'value': column, 'label': column} for column in dataset[adata].obs.columns],
-                key = lambda x: x['label']
-            )
-            value_column = init_figure_params['column']
 
         self.grid_item_control = html.Div(
             dmc.Grid(
@@ -66,25 +49,35 @@ class PlotPanel:
                 gutter='5px',
                 children=[
                     dmc.GridCol(
-                        dmc.Select(
-                            label = 'Sample',
-                            size = 'xs',
-                            id = {'type': 'PlotPanel_item_select_sample', 'index': self._index},
-                            data = list(dataset.keys()),
-                            value = adata
+                        dmc.Stack(
+                            [
+                                dmc.Text('Sample', className='dcc-DropDown-PlotPanel-item-label-column'),
+                                fac.Select(
+                                    locale = 'en-us',
+                                    allowClear=False,
+                                    id = {'type': 'PlotPanel_item_select_sample', 'index': self._index},
+                                    options = init_samples if init_samples else []
+                                ),
+                            ],
+                            gap=0
                         ),
                         span=30
                     ),
                     dmc.GridCol(
-                        dmc.Select(
-                            label = 'Type',
-                            size = 'xs',
-                            id = {'type': 'PlotPanel_item_select_type', 'index': self._index},
-                            data = [
-                                {'value': 'feature', 'label': 'feature'},
-                                {'value': 'metadata', 'label': 'metadata'}
+                        dmc.Stack(
+                            [
+                                dmc.Text('Info', className='dcc-DropDown-PlotPanel-item-label-column'),
+                                fac.Select(
+                                    locale = 'en-us',
+                                    allowClear=False,
+                                    id = {'type': 'PlotPanel_item_select_info', 'index': self._index},
+                                    options = [
+                                        {'label': 'feature', 'value': 'feature'},
+                                        {'label': 'metadata', 'value': 'metadata'},
+                                    ],
+                                ),
                             ],
-                            value = init_figure
+                            gap=0
                         ),
                         span=25
                     ),
@@ -92,13 +85,10 @@ class PlotPanel:
                         dmc.Stack(
                             [
                                 dmc.Text('Column', className='dcc-DropDown-PlotPanel-item-label-column'),
-                                dcc.Dropdown(
-                                    options = options_column,
-                                    value = value_column,
-                                    id = {'type': 'PlotPanel_item_select_column', 'index': self._index},
-                                    className='dcc-DropDown-PlotPanel-item-select-column',
-                                    optionHeight=25,
-                                    clearable=False
+                                fac.Select(
+                                    locale = 'en-us',
+                                    allowClear=False,
+                                    id = {'type': 'PlotPanel_item_select_column', 'index': self._index}
                                 ),
                             ],
                             gap=0
@@ -115,16 +105,19 @@ class PlotPanel:
                                             dmc.Select(
                                                 label = 'Plot type',
                                                 data = ['Embedding'],
-                                                value = 'Embedding'
+                                                value = 'Embedding',
+                                                allowDeselect = False,
+                                                clearable=False
                                             ),
-                                            dmc.Select(
-                                                label = 'Embedding',
-                                                id = {'type': 'PlotPanel_item_select_embedding', 'index': self._index},
-                                                data = list(dataset[adata].obsm.keys()),
-                                                value = init_figure_params['embedding'],
-                                                selectFirstOptionOnChange=True
-                                            )
-                                        ]
+                                            dmc.Space(h=3),
+                                            dmc.Text('Embedding', className='dcc-DropDown-PlotPanel-item-label-column'),
+                                            fac.Select(
+                                                locale = 'en-us',
+                                                allowClear=False,
+                                                id = {'type': 'PlotPanel_item_select_embedding', 'index': self._index}
+                                            ),
+                                        ],
+                                        gap=0,
                                     )
                                 ),
                             ]
@@ -148,7 +141,7 @@ class PlotPanel:
                         self.grid_item_control,
                         dcc.Graph(
                             id={'type': 'PlotPanel_item_graph', 'index': self._index},
-                            figure=self._figure,
+                            # figure=[],
                             responsive = True,
                             config = {
                                 'autosizable': True,
