@@ -12,12 +12,13 @@ def init_layout_2d(
     _tab_dataset = TabDataset(path_server_folder)
 
     _tabs = dbc.Tabs(
-        [
+        children=[
             _tab_dataset.tab,
             _tab_overview.tab
         ],
         active_tab = 'TAB-dataset',
-        id = '_tabs-2d'
+        id = '_tabs-2d',
+        persistence='local',
     )
     layout_all = html.Div(
         _tabs

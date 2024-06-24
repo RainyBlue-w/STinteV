@@ -27,30 +27,6 @@ class TabDataset:
     
     def __init__(self, path_server_folder: str):
 
-        self.sider = fac.Sider(
-            collapsible = False,
-            width = self._width_sider,
-            className = 'fac-Sider',
-            children = [
-                dmc.Stack(
-                    [
-                        dmc.Button(
-                            'Public Datasets',
-                            fullWidth=True,
-                            variant='subtle'
-
-                        ),
-                        dmc.Button(
-                            'Upload Datasets',
-                            fullWidth=True,
-                            variant='subtle'
-
-                        )
-                    ]
-                )
-            ]
-        )
-               
         # store for choosen datasets
         self.store_server_folder = dcc.Store(id = 'STORE_server_folder-dataset', data = path_server_folder)
         self.store_dataset = dcc.Store(id = 'STORE_choosen_dataset-dataset')
@@ -80,11 +56,6 @@ class TabDataset:
                                     value='upload',title="Upload",
                                     tips='Upload your own datasets'
                                 ),
-                                dmc.Button(
-                                    'Load choosen datasets', fullWidth=True, size='md',
-                                    style={'position': 'absolute', 'bottom':'5px'},
-                                    id = 'BUTTON_load_choosen_dataset-dataset'
-                                )
                             ],
                             className='dmc-TabsList-sider-dataset'
                         ),

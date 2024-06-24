@@ -12,6 +12,8 @@ from dash import dcc
 import uuid
 import os
 
+from zmq import DISH
+
 from stintev.page_templates._io.read import read_dataset
 from stintev.page_templates._plot import *
 from stintev.page_templates.template_2d.plot_panel import PlotPanel
@@ -99,8 +101,8 @@ class TabOverview():
                                     dmc.GridCol(
                                         dmc.NumberInput(
                                             id='NUMBERINPUT_scatter3dPointsize_3D',
-                                            value=3, step=0.5, min=0.1,
-                                            persistence=True, persistence_type='local'
+                                            value=2, step=0.5, min=0.1,
+                                            persistence='local',
                                         ),
                                         span=7
                                     ),
@@ -119,7 +121,7 @@ class TabOverview():
                                         dmc.Select(
                                             label = 'type', id='NUMBERINPUT_scatter3dFigtype_3D',
                                             value='png', data = ['svg', 'png', 'jpeg', 'webp'],
-                                            persistence = True, persistence_type = 'local', 
+                                            persistence = 'local',
                                         ),
                                         span=6
                                     ),
@@ -128,7 +130,7 @@ class TabOverview():
                                             label = 'resolution', id='NUMBERINPUT_scatter3dFigscale_3D',
                                             value=3, step=1, min=1, 
                                             leftSection=DashIconify(icon='uim:multiply', width=16),
-                                            persistence = True, persistence_type = 'local', 
+                                            persistence = 'local',
                                         ),
                                         span=6
                                     ),
@@ -174,7 +176,7 @@ class TabOverview():
                                 )
                             ]
                         ),
-                        self.drawer_plot_panels
+                        # self.drawer_plot_panels
                     ]
                 ),
             ],
@@ -186,6 +188,11 @@ class TabOverview():
             collapsible = False,
             width = self._width_sider,
             children = [
+                dmc.Badge(
+                    'Global settings', color='blue', variant='light', 
+                    radius='xs', size='xl', fullWidth=True,
+                    leftSection=DashIconify(icon='fluent:settings-20-regular', width=20)
+                ),
                 dmc.Accordion(
                     multiple=True,
                     chevronPosition='right',
@@ -194,7 +201,8 @@ class TabOverview():
                         self.control_plot_settings,
                         self.control_plot_panels,
                     ]
-                )
+                ),
+                html.Div(id='Div-debug') # tmp
             ],
             className='fac-Sider'
         )
@@ -227,8 +235,8 @@ class TabOverview():
                     containerPadding=[0,0],
                     autoSize=True,
                     isBounded=True,
-                    compactType = 'horizontal',
-                )
+                    compactType = None,
+                ),
             ],
             className='fac-Content'
         )

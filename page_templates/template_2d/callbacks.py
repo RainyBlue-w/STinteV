@@ -1,4 +1,5 @@
-from dash_extensions.enrich import Output, Input, State, Serverside, html
+import json
+from dash_extensions.enrich import Output, Input, State, Serverside, html, no_update
 from dash_extensions.enrich import callback, clientside_callback, ClientsideFunction, callback_context
 from dash import ALL, MATCH, Patch, ctx
 from dash.exceptions import PreventUpdate
@@ -22,6 +23,9 @@ clientside_callback( # open the drawer for setting panels
     Input('BUTTON_setting_panels-overview', 'n_clicks'),
     prevent_initial_call=True
 )
+
+
+#region update overview-grid layout
 
 @callback( # update the rowHeight for PlotPanel-items
     output = dict(
@@ -129,6 +133,8 @@ def add_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_folder):
 
     return  children_grid, children_drawer, uuid_list, layouts, ban_button
 
+#endregion
+
 #region generate datalist for tab-public and private
 
 def generate_datalist(
@@ -144,7 +150,7 @@ def generate_datalist(
             ).list
         ]
     )
-    
+
 @callback( # generate datalist for tab-public
     Output('TABS_panel_public-dataset', 'children'),
     Input('STORE_server_folder-dataset', 'data'),
@@ -152,6 +158,8 @@ def generate_datalist(
 )
 def generate_datalist_public(path_server_folder):
     return generate_datalist('public', path_server_folder)
+
+#endregion
 
 #region update PlotPanel
 
@@ -200,14 +208,12 @@ def update_choosen_dataset_for_tab_overview(value):
 @callback( # load choosen datasets in tab_dataset
 
     Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'options'),
-
-    Input('BUTTON_load_choosen_dataset-dataset', 'n_clicks'),
     
-    State('STORE_choosen_dataset-dataset', 'data'),
+    Input('STORE_choosen_dataset-dataset', 'data'),
     State('STORE_server_folder-dataset', 'data'),
-    prevent_initial_call=True
+    prevent_initial_call=False
 )
-def load_choosen_datasets(click_load, choosen_dataset, path_server_folder):
+def load_choosen_datasets(choosen_dataset, path_server_folder):
     
     ''' choosen_dataset: [
         {'group': 'public', 'choosen': ['spatial']},
@@ -264,33 +270,46 @@ def load_choosen_datasets(click_load, choosen_dataset, path_server_folder):
     
     return all_options
 
-@callback( # PlotPanel select-sample updates options for select_column & select_embedding 
+@callback( # PlotPanel updates options when sample/info update
     Output({'type': 'PlotPanel_item_select_column', 'index': MATCH}, 'options'),
     Output({'type': 'PlotPanel_item_select_embedding', 'index': MATCH}, 'options'),
-    
-    Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
     Input({'type': 'PlotPanel_item_select_info', 'index': MATCH}, 'value'),
+    Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
     prevent_initial_call=True
 )
-def update_PlotPael_column_options(path_sample, type):
+def update_PlotPael_column_options(info, path_sample):
 
     adata = anndata.read_h5ad(
         path_sample, backed='r'
     )
     
-    options_embedding = [{'label': i, 'value': i} for i in list(adata.obsm.keys())]
+    tid = ctx.triggered_id
     
-    if type == 'feature':
-        options_column = [{'label': column, 'value': column} for column in adata.var_names]
-        return options_column, options_embedding
-    elif type == 'metadata':
-        options_column = [{'label': column, 'value': column} for column in adata.obs.columns]
-        return options_column, options_embedding
+    
+    if len(tid)==1 and tid['type']=='PlotPanel_item_select_info':
+        if info == 'feature':
+            options_column = [{'label': column, 'value': column} for column in adata.var_names]
+            return options_column, no_update
+        elif info == 'metadata':
+            options_column = [{'label': column, 'value': column} for column in adata.obs.columns]
+            return options_column, no_update
+        
+    elif (len(tid)==1 and tid['type']=='PlotPanel_item_select_sample') or (len(tid)==2):
+        options_embedding = [{'label': i, 'value': i} for i in list(adata.obsm.keys())]
+        if info and (info=='feature'):
+            options_column = [{'label': column, 'value': column} for column in adata.var_names]
+            return options_column, options_embedding
+        elif info and (info=='metadata'):
+            options_column = [{'label': column, 'value': column} for column in adata.obs.columns]
+            return options_column, options_embedding
+        else:
+            return no_update, options_embedding
     else:
         raise PreventUpdate
-    
+
 @callback( # update PlotPanel figure
     Output({'type': 'PlotPanel_item_graph', 'index': MATCH}, 'figure'),
+    Output({'type': 'PlotPanel_store_traceNumber', 'index': MATCH}, 'data'),
     
     Input({'type': 'PlotPanel_item_select_column', 'index': MATCH}, 'value'),
     Input({'type': 'PlotPanel_item_select_embedding', 'index': MATCH}, 'value'),
@@ -299,20 +318,42 @@ def update_PlotPael_column_options(path_sample, type):
     Input({'type': 'PlotPanel_item_select_info', 'index': MATCH}, 'value'),
     prevent_initial_call=True
 )
-def update_PlotPnel_figure(column, embedding, path_sample, type):
+def update_PlotPanel_figure(column, embedding, path_sample, info):
     
     adata = anndata.read_h5ad(
         path_sample, backed='r'
-    ) 
+    )
 
-    if type == 'feature':
+    if info == 'feature' and column and embedding and path_sample and info:
         figure = plot_feature_embedding(adata, column, embedding)
-    elif type == 'metadata':
+        traceNumber = 1
+    elif info == 'metadata' and column and embedding and path_sample and info:
         figure = plot_metadata_embedding(adata, column, embedding)
+        traceNumber = len(adata.obs[column].unique())
     else:
         raise PreventUpdate
 
-    return figure
+    return figure, traceNumber
+
+
+@callback( # update marker_size panel
+    Output({'type': 'PlotPanel_item_graph', 'index': MATCH}, 'figure'),
+    Input({'type': 'PlotPanel_item_pointSize', 'index': MATCH}, 'value'),
+    Input({'type': 'PlotPanel_store_traceNumber', 'index': MATCH}, 'data')
+)
+def update_PlotPanel_pointSize_panel(pointSize, traceNumber):
+    patch = Patch()
+    for i in range(traceNumber):
+        patch['data'][i]['marker']['size'] = pointSize        
+    return patch
+
+@callback( # update marker_size global
+    Output({'type': 'PlotPanel_item_pointSize', 'index': ALL}, 'value'),
+    Input('NUMBERINPUT_scatter3dPointsize_3D', 'value'),
+)
+def update_PlotPanel_pointSize_global(pointSize):
+    
+    return [pointSize]*len(ctx.outputs_list)
 
 #endregion
 

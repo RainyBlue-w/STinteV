@@ -49,19 +49,57 @@ class PlotPanel:
                 gutter='5px',
                 children=[
                     dmc.GridCol(
-                        dmc.Stack(
-                            [
-                                dmc.Text('Sample', className='dcc-DropDown-PlotPanel-item-label-column'),
-                                fac.Select(
-                                    locale = 'en-us',
-                                    allowClear=False,
-                                    id = {'type': 'PlotPanel_item_select_sample', 'index': self._index},
-                                    options = init_samples if init_samples else []
-                                ),
-                            ],
-                            gap=0
+                        children = fac.Popover(
+                            mouseLeaveDelay=0.1,
+                            placement = 'bottom',
+                            children = dmc.ActionIcon(
+                                children=DashIconify(icon='fluent:database-multiple-20-regular', width=24),
+                                size='lg', variant='light', color='blue'
+                            ),
+                            content = dmc.Stack(
+                                [
+                                    dmc.Text('Sample', className='dcc-DropDown-PlotPanel-item-label-column'),
+                                    fac.Select(
+                                        placeholder='Choose a sample',
+                                        locale = 'en-us',
+                                        allowClear=False,
+                                        id = {'type': 'PlotPanel_item_select_sample', 'index': self._index},
+                                        options = init_samples if init_samples else []
+                                    ),
+                                    dmc.Space(h=3),
+                                    dmc.Text('Embedding', className='dcc-DropDown-PlotPanel-item-label-column'),
+                                    fac.Select(
+                                        placeholder='Choose an embedding',
+                                        locale = 'en-us',
+                                        allowClear=False,
+                                        id = {'type': 'PlotPanel_item_select_embedding', 'index': self._index}
+                                    ),
+                                ],
+                                gap=0,
+                            )
                         ),
-                        span=30
+                        span=9
+                    ),
+                    dmc.GridCol(
+                       children = fac.Popover(
+                            mouseLeaveDelay=0.1,
+                            placement = 'bottom',
+                            children = dmc.ActionIcon(
+                                children=DashIconify(icon='fluent:settings-24-regular', width=24),
+                                size='lg', variant='light', color='blue'
+                            ),
+                            content = dmc.Stack(
+                                [
+                                    dmc.Text('Point size', className='dcc-DropDown-PlotPanel-item-label-column'),
+                                    dmc.NumberInput(
+                                        id={'type': 'PlotPanel_item_pointSize', 'index': self._index},
+                                        value=2, step=0.5, min=0.5,
+                                    ),
+                                ],
+                                gap=0,
+                            )
+                        ),
+                        span=9
                     ),
                     dmc.GridCol(
                         dmc.Stack(
@@ -88,41 +126,20 @@ class PlotPanel:
                                 fac.Select(
                                     locale = 'en-us',
                                     allowClear=False,
+                                    optionFilterMode = 'case-sensitive',
                                     id = {'type': 'PlotPanel_item_select_column', 'index': self._index}
                                 ),
                             ],
                             gap=0
                         ),
-                        span=30
+                        span=40
                     ),
                     dmc.GridCol(
-                        dmc.Popover(
-                            [
-                                dmc.PopoverTarget(dmc.Button('...')),
-                                dmc.PopoverDropdown(
-                                    dmc.Stack(
-                                        [
-                                            dmc.Select(
-                                                label = 'Plot type',
-                                                data = ['Embedding'],
-                                                value = 'Embedding',
-                                                allowDeselect = False,
-                                                clearable=False
-                                            ),
-                                            dmc.Space(h=3),
-                                            dmc.Text('Embedding', className='dcc-DropDown-PlotPanel-item-label-column'),
-                                            fac.Select(
-                                                locale = 'en-us',
-                                                allowClear=False,
-                                                id = {'type': 'PlotPanel_item_select_embedding', 'index': self._index}
-                                            ),
-                                        ],
-                                        gap=0,
-                                    )
-                                ),
-                            ]
+                        dmc.ActionIcon(
+                            DashIconify(icon='gg:close-r', width=24),
+                            size='lg', variant='light', color='red'
                         ),
-                        span=15
+                        span=10
                     )
                 ]
             )
@@ -139,9 +156,15 @@ class PlotPanel:
                     className = 'fuc-div-plotPanel-gridItem',
                     children=[
                         self.grid_item_control,
+                        dcc.Store(id = {'type': 'PlotPanel_store_traceNumber', 'index': self._index}, data=1),
                         dcc.Graph(
                             id={'type': 'PlotPanel_item_graph', 'index': self._index},
-                            # figure=[],
+                            figure=px.scatter().update_layout(
+                                margin=dict(l=0, r=0, t=0, b=0),
+                                plot_bgcolor = '#ffffff', 
+                                uirevision='constant',
+                                legend_itemsizing = 'constant'
+                            ).update_xaxes(visible=False).update_yaxes(visible=False),
                             responsive = True,
                             config = {
                                 'autosizable': True,

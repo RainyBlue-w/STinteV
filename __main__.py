@@ -60,6 +60,8 @@ dashapp.layout = dmc.MantineProvider(
     ]
 )
 
+dashapp.config.suppress_callback_exceptions = True
+
 
 
 

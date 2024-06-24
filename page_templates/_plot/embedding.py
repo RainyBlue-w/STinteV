@@ -37,14 +37,15 @@ def plot_feature_embedding(
         (0.00, "#F4F4F4"),
         (0.05, "#F4F4F4"),
         (1.00, "#225EA8")
-    ], 
+    ],
+    marker_size: float = 2.0,
     **kws
 ) -> go.Figure :
     
     if adata.obsm[embedding].shape[1] == 2:
-        plot = _plot_feature_embedding_2d(adata, feature, embedding, sort, ascending, cmap, **kws)
+        plot = _plot_feature_embedding_2d(adata, feature, embedding, sort, ascending, cmap, marker_size, **kws)
     elif adata.obsm[embedding].shape[1] == 3:
-        plot = _plot_feature_embedding_3d(adata, feature, embedding, sort, ascending, cmap, **kws)
+        plot = _plot_feature_embedding_3d(adata, feature, embedding, sort, ascending, cmap, marker_size, **kws)
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
     
@@ -54,14 +55,16 @@ def plot_metadata_embedding(
     adata: anndata.AnnData,
     column: str,
     embedding: str,
-    cmap: Dict | None = None,
+    cmap: Dict = None,
+    marker_size: float = 2.0,
+    color_discrete_sequence: List = px.colors.qualitative.Alphabet,
     **kws
 ) -> go.Figure:
     
     if adata.obsm[embedding].shape[1] == 2:
-        plot = _plot_metadata_embedding_2d(adata, column, embedding, cmap, **kws)
+        plot = _plot_metadata_embedding_2d(adata, column, embedding, cmap, marker_size, color_discrete_sequence=color_discrete_sequence, **kws)
     elif adata.obsm[embedding].shape[1] == 3:
-        plot = _plot_metadata_embedding_3d(adata, column, embedding, cmap, **kws)
+        plot = _plot_metadata_embedding_3d(adata, column, embedding, cmap, marker_size, color_discrete_sequence=color_discrete_sequence, **kws)
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
     
@@ -77,7 +80,8 @@ def _plot_feature_embedding_2d(
         (0.00, "#F4F4F4"),
         (0.05, "#F4F4F4"),
         (1.00, "#225EA8")
-    ], 
+    ],
+    marker_size: float = 2.0,
     **kws
 ) -> go.Figure :
     
@@ -96,7 +100,7 @@ def _plot_feature_embedding_2d(
         **kws
     )
     plot.update_yaxes(visible=False).update_xaxes(visible=False)
-    plot.update_traces(marker_size=4, marker_opacity=1)
+    plot.update_traces(marker_size=marker_size, marker_opacity=1)
     plot.update_layout(
         margin=dict(l=0, t=0, b=0),
         plot_bgcolor = '#ffffff', 
@@ -125,7 +129,8 @@ def _plot_feature_embedding_3d(
         (0.00, "#F4F4F4"),
         (0.05, "#F4F4F4"),
         (1.00, "#225EA8")
-    ], 
+    ],
+    marker_size: float = 2.0,
     **kws
 ) -> go.Figure :
 
@@ -143,7 +148,7 @@ def _plot_feature_embedding_3d(
         color_continuous_scale = cmap,
         **kws
     )
-    plot.update_traces(marker_size=2, marker_opacity=1)
+    plot.update_traces(marker_size=marker_size, marker_opacity=1)
     plot.update_layout(
       margin=dict(l=0, r=0, t=0, b=0),
       plot_bgcolor = '#ffffff', 
@@ -167,12 +172,12 @@ def _plot_feature_embedding_3d(
     #                                            font_size = 20)) 
     return plot
 
-
 def _plot_metadata_embedding_2d(
     adata: anndata.AnnData,
     column: str,
     embedding: str,
     cmap: Dict | None = None,
+    marker_size: float = 2.0,
     **kws
 ) -> go.Figure:
     
@@ -187,7 +192,7 @@ def _plot_metadata_embedding_2d(
     )
     plot.update_yaxes(visible=False)
     plot.update_xaxes(visible=False)
-    plot.update_traces(marker_size=4.5, marker_opacity=1)
+    plot.update_traces(marker_size=marker_size, marker_opacity=1)
     plot.update_layout(
         margin=dict(l=0, r=0, t=0, b=0),
         plot_bgcolor = '#ffffff', 
@@ -207,6 +212,7 @@ def _plot_metadata_embedding_3d(
     column: str,
     embedding: str,
     cmap: Dict | None = None,
+    marker_size: float = 2.0,
     **kws
 ) -> go.Figure:
     
@@ -219,7 +225,7 @@ def _plot_metadata_embedding_3d(
         color_discrete_map = cmap,
         **kws
     )
-    plot.update_traces(marker_size=2, marker_opacity=1)
+    plot.update_traces(marker_size=marker_size, marker_opacity=1)
     plot.update_layout(
       margin=dict(l=0, r=0, t=0, b=0),
       plot_bgcolor = '#ffffff', 
