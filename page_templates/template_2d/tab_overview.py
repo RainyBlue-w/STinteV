@@ -21,7 +21,7 @@ from stintev.page_templates.template_2d.plot_panel import PlotPanel
 class TabOverview():
     
     # const
-    _width_sider = 250
+    _width_sider = '15vw'
     _width_sider_collapsed = 60
     _width_drawer = 250
     _rowHeight_plot_panel = 350
@@ -44,42 +44,18 @@ class TabOverview():
 
     # Tab init
     def __init__(self, path_server_folder: str) -> None:
-                    
+
         self._init_plot_panels = [ 
             PlotPanel(index=uuid.uuid1().hex),
             PlotPanel(index=uuid.uuid1().hex),
         ]
 
-        # drawer for setting plot panels
-        self.drawer_plot_panels = html.Div([
-            dmc.Drawer(
-                id = 'DRAWER_setting_panels-overview',
-                className = 'dmc-Drawer-plotPanels',
-                size = f'{self._width_drawer}px',
-                closeOnClickOutside = True,
-                lockScroll = False,
-                withOverlay = False,
-                title = dmc.Stack(
-                    [
-                        dmc.Text('Setting panels', className='dmc-Text-drawerTitle'),
-                        dmc.Text('tip: setting the contents of plot panels', className='dmc-Text-drawerSubTitle'),
-                    ]
-                ),
-                children = [ 
-                    html.Div(
-                        id = 'DRAWER_setting_panels_div-overview',
-                        children=[
-                            self._init_plot_panels[i].sider_settings for i in range( self._n_init_plot_panels ) 
-                        ]
-                    ),
-                    dmc.Button(
-                        "Add panel", id='BUTTON_setting_panels_add-overview',
-                        color='teal', fullWidth=True,
-                        leftSection=DashIconify(icon="fluent:add-square-20-regular", width=20)
-                    )
-                ]
-            )
-        ])
+        self.store_plotPanelsCurUUID = dcc.Store(
+            id='STORE_plotPanelsCurUUID-overview', 
+            data = [
+                self._init_plot_panels[i]._index for i in range( self._n_init_plot_panels )
+            ]
+        )
 
         # accordion item in sider (Plot settings)
         self.control_plot_settings = dmc.AccordionItem(
@@ -95,55 +71,25 @@ class TabOverview():
                             dmc.Grid(
                                 [
                                     dmc.GridCol(
-                                        dmc.Text('Point size:', className='dmc-Text-label'),
-                                        span=5
-                                    ),
-                                    dmc.GridCol(
                                         dmc.NumberInput(
+                                            label = 'Point size',
+                                            # description = 'Size of the points in scatter plot',
                                             id='NUMBERINPUT_scatter3dPointsize_3D',
                                             value=2, step=0.5, min=0.1,
                                             persistence='local',
                                         ),
-                                        span=7
+                                        span=12
                                     ),
                                 ],
-                                justify='center', gutter=3, className='dmc-Grid-center'
                             ),
                             dmc.Space(h=5),        
-                        ]),
-                        # ----Download----
-                        html.Div([
-                            dmc.Divider(label='Download', labelPosition='center', variant='dashed', className='dmc-divider-sidebar-inline'),
-                            dmc.Text('tip: replot to take effect', className='dmc-Text-sidebar-tips'),
-                            dmc.Grid(
-                                [
-                                    dmc.GridCol(
-                                        dmc.Select(
-                                            label = 'type', id='NUMBERINPUT_scatter3dFigtype_3D',
-                                            value='png', data = ['svg', 'png', 'jpeg', 'webp'],
-                                            persistence = 'local',
-                                        ),
-                                        span=6
-                                    ),
-                                    dmc.GridCol(
-                                        dmc.NumberInput(
-                                            label = 'resolution', id='NUMBERINPUT_scatter3dFigscale_3D',
-                                            value=3, step=1, min=1, 
-                                            leftSection=DashIconify(icon='uim:multiply', width=16),
-                                            persistence = 'local',
-                                        ),
-                                        span=6
-                                    ),
-                                ],
-                                justify='center', gutter=3, className='dmc-Grid-center'
-                            ),     
                         ]),
                     ]
                 )
             ],
             value='control_plot_settings'
         )
-        
+
         # accordion item in sider (Plot panels)
         self.control_plot_panels = dmc.AccordionItem(
             children=[
@@ -170,13 +116,15 @@ class TabOverview():
                                 ),
                                 dmc.GridCol(
                                     children = [
-                                        dmc.Button('Setting panels', fullWidth=True, id='BUTTON_setting_panels-overview'),
+                                        dmc.Button(
+                                            'Add a panel', fullWidth=True, id='BUTTON_setting_panels_add-overview',
+                                            leftSection=DashIconify(icon='fluent:add-square-20-regular', width=20),
+                                        ),
                                     ],
                                     span=12
                                 )
                             ]
                         ),
-                        # self.drawer_plot_panels
                     ]
                 ),
             ],
@@ -187,36 +135,33 @@ class TabOverview():
         self.sider = fac.Sider(
             collapsible = False,
             width = self._width_sider,
-            children = [
-                dmc.Badge(
-                    'Global settings', color='blue', variant='light', 
-                    radius='xs', size='xl', fullWidth=True,
-                    leftSection=DashIconify(icon='fluent:settings-20-regular', width=20)
-                ),
-                dmc.Accordion(
-                    multiple=True,
-                    chevronPosition='right',
-                    variant='seperated',
-                    children=[
-                        self.control_plot_settings,
-                        self.control_plot_panels,
-                    ]
-                ),
-                html.Div(id='Div-debug') # tmp
-            ],
+            children = fac.Affix(
+                html.Div([
+                    dmc.Badge(
+                        'Global settings', color='blue', variant='light', 
+                        radius='xs', size='xl', fullWidth=True,
+                        leftSection=DashIconify(icon='fluent:settings-20-regular', width=20)
+                    ),
+                    dmc.Accordion(
+                        multiple=True,
+                        chevronPosition='right',
+                        variant='seperated',
+                        children=[
+                            self.control_plot_settings,
+                            self.control_plot_panels,
+                        ]
+                    ),
+                ]),
+            ),
             className='fac-Sider'
         )
 
         # content in right
         self.content = fac.Content(
-            [
-                dcc.Store(
-                    id='STORE_plotPanelsCurUUID-overview', 
-                    data = [
-                        self._init_plot_panels[i]._index for i in range( self._n_init_plot_panels )
-                    ]
-                ),
-                fuc.FefferyGrid(
+            className='fac-Content',
+            children = html.Div(
+                style={'display': 'flex'},
+                children = fuc.FefferyGrid(
                     id = 'FUCGRID_content-overview',
                     className='fuc-Grid',
                     children=[
@@ -225,8 +170,8 @@ class TabOverview():
                     layouts= [ 
                         dict(
                             i=p._index, x = (i%3)*16, y = i//3, 
-                            w=16, h=1, maxH=1
-                        ) 
+                            w=16, h=1
+                        )
                         for i, p in enumerate(self._init_plot_panels)
                     ],
                     cols=48,
@@ -235,10 +180,9 @@ class TabOverview():
                     containerPadding=[0,0],
                     autoSize=True,
                     isBounded=True,
-                    compactType = None,
+                    compactType = 'horizontal',
                 ),
-            ],
-            className='fac-Content'
+            ),
         )
 
         # whole tab
@@ -246,14 +190,13 @@ class TabOverview():
             label = 'Overview',
             tab_id = 'TAB-overview',
             children = [
+                self.store_plotPanelsCurUUID,
                 fac.Layout(
                     [
-                        fac.Affix(
-                            self.sider
-                        ),
-                        self.content
+                        self.sider,
+                        self.content,
                     ],
                     className = 'fac-Layout'
-                )
+                ),
             ]    
         )

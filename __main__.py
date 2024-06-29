@@ -3,11 +3,10 @@ import dash._dash_renderer
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_extensions.enrich import html, DashProxy, LogTransform, ServersideOutputTransform, MultiplexerTransform
-from dash_extensions.enrich import RedisBackend
 
-from fastapi import FastAPI
-from fastapi.middleware.wsgi import WSGIMiddleware
-   
+import argparse
+
+
 dash._dash_renderer._set_react_version('18.2.0') # needed for dash_mantine_components v0.14
 
 _stylesheets = [
@@ -22,19 +21,11 @@ _stylesheets = [
 
 _navbar = dbc.NavbarSimple(
     [
-        dbc.DropdownMenu(
-            children=[
-                dbc.DropdownMenuItem('Test', href='/'),
-            ],
-            nav=True,
-            in_navbar=True,
-            label="Dataset",
-        ),
+        dbc.NavItem(dbc.NavLink('Login', href='login'))
     ],
     brand="STinteV",
     color="dark",
     dark=True,
-    # sticky='top',
     className='dbc-Navbar-main'
 )
 
@@ -62,18 +53,16 @@ dashapp.layout = dmc.MantineProvider(
 
 dashapp.config.suppress_callback_exceptions = True
 
-
-
-
 if __name__ == "__main__":
     
-    dashapp.run(
-        host='0.0.0.0',
-        port=8055,
-        debug=True
-    )
+    parser = argparse.ArgumentParser(description='Run the 3Dviewer app')
+    parser.add_argument('--host', default='0.0.0.0', required=False, help='Host to run the app on')
+    parser.add_argument('--port', default='8000', required=False, help='Port to run the app on')
+    parser.add_argument('--debug', action='store_true', required=False, help='Run app on debug mode')
+    args = parser.parse_args()
     
-    # import uvicorn
-    # app = FastAPI(root_path='/stintev')
-    # app.mount("/", WSGIMiddleware(dashapp.server))
-    # uvicorn.run(app, port=8055, host='0.0.0.0', log_level='info', debug=True)
+    dashapp.run(
+        host=args.host,
+        port=args.port,
+        debug=args.debug
+    )

@@ -50,6 +50,7 @@ class PlotPanel:
                 children=[
                     dmc.GridCol(
                         children = fac.Popover(
+                            trigger = 'click',
                             mouseLeaveDelay=0.1,
                             placement = 'bottom',
                             children = dmc.ActionIcon(
@@ -78,10 +79,11 @@ class PlotPanel:
                                 gap=0,
                             )
                         ),
-                        span=9
+                        span='content'
                     ),
                     dmc.GridCol(
                        children = fac.Popover(
+                        trigger = 'click',
                             mouseLeaveDelay=0.1,
                             placement = 'bottom',
                             children = dmc.ActionIcon(
@@ -99,13 +101,21 @@ class PlotPanel:
                                 gap=0,
                             )
                         ),
-                        span=9
+                        span='content'
+                    ),
+                    dmc.GridCol(
+                        children = dmc.ActionIcon(
+                            children=DashIconify(icon='iconoir:filter', width=24),
+                            size='lg', variant='light', color='blue'
+                        ),
+                        span='content'
                     ),
                     dmc.GridCol(
                         dmc.Stack(
                             [
                                 dmc.Text('Info', className='dcc-DropDown-PlotPanel-item-label-column'),
                                 fac.Select(
+                                    placeholder='Info to plot',
                                     locale = 'en-us',
                                     allowClear=False,
                                     id = {'type': 'PlotPanel_item_select_info', 'index': self._index},
@@ -117,7 +127,7 @@ class PlotPanel:
                             ],
                             gap=0
                         ),
-                        span=25
+                        span='content'
                     ),
                     dmc.GridCol(
                         dmc.Stack(
@@ -132,14 +142,15 @@ class PlotPanel:
                             ],
                             gap=0
                         ),
-                        span=40
+                        span='auto'
                     ),
                     dmc.GridCol(
                         dmc.ActionIcon(
                             DashIconify(icon='gg:close-r', width=24),
+                            id = {'type': 'PlotPanel_item_button_delete', 'index': self._index},
                             size='lg', variant='light', color='red'
                         ),
-                        span=10
+                        span='content'
                     )
                 ]
             )
@@ -168,83 +179,13 @@ class PlotPanel:
                             responsive = True,
                             config = {
                                 'autosizable': True,
+                                'toImageButtonOptions': {'format': 'jpeg', 'scale': 2}
                             },
                             style = {'height': f'{self._height_plot_panel_item}px'}
                         )   
                     ]
                 )
             ]
-        )
-        
-        self.sider_settings = fuc.FefferyDiv(
-            id = {'type':'PlotPanel_settings_card_div', 'index': self._index},
-            shadow = 'hover-shadow',
-            className = 'fuc-Div-plotPanel-settings',
-            children = [
-                dmc.Card(
-                    withBorder = True,
-                    shadow = None,
-                    radius = "md",
-                    w = self._width_drawer_card,
-                    children = [
-                        dmc.Grid(
-                            columns=100,
-                            children=[
-                                dmc.GridCol(
-                                    span=52,
-                                    children=[
-                                        dmc.Select(
-                                            label = 'Sample',
-                                            # placeholder='sample',
-                                            id = {'type': 'PlotPanel_settings_select_sample', 'index': self._index},
-                                            data = [
-                                                {'value': 'E7.5', 'label': 'E7.5'},
-                                                {'value': 'E7.75', 'label': 'E7.75'},
-                                                {'value': 'E8.0', 'label': 'E8.0'}
-                                            ],
-                                            value = 'E7.5'
-                                        )
-                                    ]
-                                ),
-                                dmc.GridCol(
-                                    span=48,
-                                    children=[
-                                        dmc.Select(
-                                            label = 'Type',
-                                            # placeholder='Exp/Obs',
-                                            data = [
-                                                {'value': 'Exp', 'label': 'Exp'},
-                                                {'value': 'Obs', 'label': 'Obs'}
-                                            ],
-                                            value = 'Exp'
-                                        )    
-                                    ]
-                                ),
-                                dmc.GridCol(
-                                    span=100,
-                                    children=[
-                                        dmc.Select(
-                                            label = 'Column',
-                                            id = {'type': 'PlotPanel_settings_select_column', 'index': self._index},
-                                            data = []
-                                        )    
-                                    ]
-                                ),
-                                dmc.GridCol(
-                                    span=100,
-                                    children=[
-                                        dmc.Button(
-                                            'Delete panel', id={'type': 'PlotPanel_settings_button_delete', 'index': self._index},
-                                            color='red', fullWidth=True, variant="subtle",
-                                            leftSection=DashIconify(icon="fluent:subtract-square-20-regular", width=20),
-                                        )
-                                    ]
-                                )
-                            ]
-                        )
-                    ]
-                )
-            ],
         )
 
 

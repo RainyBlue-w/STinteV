@@ -18,7 +18,6 @@ def init_layout_2d(
         ],
         active_tab = 'TAB-dataset',
         id = '_tabs-2d',
-        persistence='local',
     )
     layout_all = html.Div(
         _tabs

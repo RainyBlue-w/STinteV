@@ -12,7 +12,6 @@ from stintev.page_templates._plot import plot_feature_embedding, plot_metadata_e
 from .plot_panel import PlotPanel
 from .dataset_list import DatasetList
 
-    
 clientside_callback( # open the drawer for setting panels
     """
     function(n_clicks){
@@ -23,7 +22,6 @@ clientside_callback( # open the drawer for setting panels
     Input('BUTTON_setting_panels-overview', 'n_clicks'),
     prevent_initial_call=True
 )
-
 
 #region update overview-grid layout
 
@@ -48,15 +46,12 @@ def update_height_for_plot_panel_items(height):
 
 @callback( # add & delete PlotPanel
     Output('FUCGRID_content-overview', 'children', allow_duplicate=True),
-    Output('DRAWER_setting_panels_div-overview', 'children', allow_duplicate=True),
     Output('STORE_plotPanelsCurUUID-overview', 'data', allow_duplicate=True),
     Output('FUCGRID_content-overview', 'layouts'),
     Output('BUTTON_setting_panels_add-overview', 'disabled'),
-    
-    # Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'options'),
    
     Input('BUTTON_setting_panels_add-overview', 'n_clicks'),
-    Input({'type': 'PlotPanel_settings_button_delete', 'index': ALL}, 'n_clicks'),
+    Input({'type': 'PlotPanel_item_button_delete', 'index': ALL}, 'n_clicks'),
     State('STORE_plotPanelsCurUUID-overview', 'data'),
     
     State('STORE_choosen_dataset-dataset', 'data'),
@@ -69,7 +64,6 @@ def add_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_folder):
     
     tid = ctx.triggered_id
     children_grid = Patch()
-    children_drawer = Patch()
     
     if tid == 'BUTTON_setting_panels_add-overview':
         if add and (len(uuid_list) <= 5):
@@ -99,20 +93,15 @@ def add_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_folder):
             children_grid.append(
                 next_PlotPanel.grid_item
             )
-            children_drawer.append(
-                next_PlotPanel.sider_settings
-            )
             uuid_list.append(
                 next_PlotPanel._index
             )
             
-    elif ('type' in tid) and (tid['type'] == 'PlotPanel_settings_button_delete') and (len(uuid_list) > 1):
-
+    elif ('type' in tid) and (tid['type'] == 'PlotPanel_item_button_delete') and (len(uuid_list) > 1):
         del_index = tid['index']
         for i, index in enumerate(uuid_list):
             if index == del_index:
                 del children_grid[i]
-                del children_drawer[i]
                 del uuid_list[i]
     else:
         raise PreventUpdate
@@ -122,7 +111,7 @@ def add_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_folder):
         layouts.append(
             dict(
                 i=index, x = (i%3)*16, y = i//3, 
-                w=16, h=1, maxH=1
+                w=16, h=1
             ) 
         )
 
@@ -131,7 +120,7 @@ def add_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_folder):
     else:
         ban_button = False
 
-    return  children_grid, children_drawer, uuid_list, layouts, ban_button
+    return  children_grid, uuid_list, layouts, ban_button
 
 #endregion
 
@@ -249,23 +238,24 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
 
     options = []
     for i in choosen_dataset:
-        if len(i['choosen']) > 0 : 
+        if len(i['choosen']) > 0: 
             for dataset in i['choosen']:
-                options.append(
-                    {
-                        'group': f'{dataset}-{i["group"]}',
-                        'options': [
-                            {
-                                'label': adata,
-                                'value': os.path.join(path_server_folder, 'datasets', i['group'], dataset, adata)
-                            }
-                            for adata in os.listdir(
-                                os.path.join(path_server_folder, 'datasets', i['group'], dataset)
-                            )
-                        ]
-                    }
-                )
-                
+                dataset_dir = os.path.join(path_server_folder, 'datasets', i['group'], dataset)
+                if os.path.exists(dataset_dir):
+                    options.append(
+                        {
+                            'group': f'{dataset}-{i["group"]}',
+                            'options': [
+                                {
+                                    'label': adata,
+                                    'value': os.path.join(dataset_dir, adata)
+                                }
+                                for adata in sorted( os.listdir(dataset_dir) ) 
+                                if os.path.exists( os.path.join(dataset_dir, adata) )
+                            ]
+                        }
+                    )
+
     all_options = [ options for i in range(len(ctx.outputs_list))]
     
     return all_options
@@ -335,7 +325,6 @@ def update_PlotPanel_figure(column, embedding, path_sample, info):
 
     return figure, traceNumber
 
-
 @callback( # update marker_size panel
     Output({'type': 'PlotPanel_item_graph', 'index': MATCH}, 'figure'),
     Input({'type': 'PlotPanel_item_pointSize', 'index': MATCH}, 'value'),
@@ -352,7 +341,6 @@ def update_PlotPanel_pointSize_panel(pointSize, traceNumber):
     Input('NUMBERINPUT_scatter3dPointsize_3D', 'value'),
 )
 def update_PlotPanel_pointSize_global(pointSize):
-    
     return [pointSize]*len(ctx.outputs_list)
 
 #endregion

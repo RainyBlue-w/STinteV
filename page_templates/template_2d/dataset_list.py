@@ -24,13 +24,12 @@ class DatasetList:
         
         self.list = dmc.CheckboxGroup(
             id={'type': 'DatasetList-checkboxGroup', 'index': id_prefix},
-            persistence = 'local',
             value=[],
             children=dmc.Grid(
                 children=[
-                    dmc.GridCol(span=3,
-                        children=
-                        dmc.Card(
+                    dmc.GridCol(
+                        span=3,
+                        children = dmc.Card(
                             radius='md',
                             shadow='sm',
                             withBorder=True,

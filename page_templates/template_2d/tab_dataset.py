@@ -95,6 +95,5 @@ class TabDataset:
             ],
             className='dmc-TabsTab-sider-dataset'
         )
-        
+
         return content
-    
