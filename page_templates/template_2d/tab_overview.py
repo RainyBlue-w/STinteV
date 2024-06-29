@@ -170,7 +170,7 @@ class TabOverview():
                     layouts= [ 
                         dict(
                             i=p._index, x = (i%3)*16, y = i//3, 
-                            w=16, h=1
+                            w=16, h=1, maxH=1
                         )
                         for i, p in enumerate(self._init_plot_panels)
                     ],

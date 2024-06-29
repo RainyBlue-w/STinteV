@@ -111,7 +111,7 @@ def add_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_folder):
         layouts.append(
             dict(
                 i=index, x = (i%3)*16, y = i//3, 
-                w=16, h=1
+                w=16, h=1, maxH=1
             ) 
         )
 
