@@ -10,31 +10,11 @@
     color: #000;
 }
 
-.dmc-Grid-center {
-  align-items: center;
-  justify-content: center;
-}
-
 .dmc-ChipGroup-legend {
   overflow-y: auto;
   max-height: 75vh;
 }
 
-/* dmc-Tabs-inline */
-.dmc-Tabs-inline .mantine-Tabs-tabLabel {
-  /* writing-mode: vertical-rl; */
-  /* transform: rotate(-0.5turn); */
-  font-size: 0.8rem;
-  font-weight: normal;
-}
-
-.dmc-Tabs-inline .mantine-Tabs-tab{
-  padding-top: 3px;
-}
-
-.dmc-Tabs-inline .mantine-Tabs-panel {
-  padding-top: 3px;
-}
 
 .dmc-Text-setting-title {
   font-size: 1rem;
@@ -77,8 +57,4 @@
   font-size: 0.8rem;
   font-weight: bold;
   color: #4080ee;
-}
-
-.dmc-Drawer-plotPanels {
-  overflow-y: scroll;
 }

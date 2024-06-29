@@ -4,6 +4,9 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_extensions.enrich import html, DashProxy, LogTransform, ServersideOutputTransform, MultiplexerTransform
 
+import argparse
+
+
 dash._dash_renderer._set_react_version('18.2.0') # needed for dash_mantine_components v0.14
 
 _stylesheets = [
@@ -18,19 +21,11 @@ _stylesheets = [
 
 _navbar = dbc.NavbarSimple(
     [
-        dbc.DropdownMenu(
-            children=[
-                dbc.DropdownMenuItem('Test', href='/'),
-            ],
-            nav=True,
-            in_navbar=True,
-            label="Dataset",
-        ),
+        dbc.NavItem(dbc.NavLink('Login', href='login'))
     ],
     brand="STinteV",
     color="dark",
     dark=True,
-    # sticky='top',
     className='dbc-Navbar-main'
 )
 
@@ -45,6 +40,7 @@ dashapp = DashProxy(
   ],
   prevent_initial_callbacks=True,
   use_pages=True,
+  requests_pathname_prefix='/',
 )
 
 dashapp.layout = dmc.MantineProvider(
@@ -55,13 +51,18 @@ dashapp.layout = dmc.MantineProvider(
     ]
 )
 
+dashapp.config.suppress_callback_exceptions = True
+
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description='Run the 3Dviewer app')
+    parser.add_argument('--host', default='0.0.0.0', required=False, help='Host to run the app on')
+    parser.add_argument('--port', default='8000', required=False, help='Port to run the app on')
+    parser.add_argument('--debug', action='store_true', required=False, help='Run app on debug mode')
+    args = parser.parse_args()
+    
     dashapp.run(
-
-        host='10.86.60.31',
-        port='8055',
-        threaded=True,
-        proxy=None,
-
-        debug=True
+        host=args.host,
+        port=args.port,
+        debug=args.debug
     )

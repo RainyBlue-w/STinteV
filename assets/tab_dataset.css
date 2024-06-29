@@ -1,0 +1,11 @@
+.dmc-Tabs-dataset {
+    height: calc(100vh - 100px);
+}
+
+.dmc-TabsTab-sider-dataset {
+    text-align: end;
+}
+
+.dmc-TabsList-sider-dataset {
+    align-items: end;
+}

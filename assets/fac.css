@@ -1,18 +1,14 @@
 
-.fac-Sider {
-    background-color: #FFFFFF;
-    border: 1px solid #dee2e6;
-    height: 100vh; 
-    overflow-y: scroll;
-}
-
-.fac-Content {
-    background-color: #FFFFFF;
-}
-
 .fac-Layout {
     height: calc(100vh - 90px);
     background-color: #FFFFFF;
+    border: 0px solid #FFFFFF;
+}
+
+.fac-Sider {
+    background-color: #FFFFFF;
+    /* border: 1px solid #dee2e6; */
+    overflow-y: scroll;
 }
 
 .fac-Layout .ant-layout-sider-trigger {
@@ -22,6 +18,19 @@
     border-radius: 10px;
 }
 
+.fac-Content {
+    background-color: #FFFFFF;
+}
+
+.fuc-Grid {
+    height: 100%;
+}
+
+.fuc-Grid .feffery-grid-item-dragger{
+    /* dragger size */
+    width: 24px;
+}
+
 .fuc-GirdItem {
     display: block;
     justify-content: center;
@@ -29,11 +38,11 @@
     overflow: clip;
 }
 
-.fuc-Grid {
-    width: calc(100vw - 260px);
-}
-
 .fuc-Div-plotPanel-settings {
     border-radius: 10px;
     margin-bottom: 5px;
+}
+
+.fuc-div-plotPanel-gridItem {
+    margin: -25px 0 0 0;
 }
