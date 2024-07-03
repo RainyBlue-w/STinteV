@@ -15,3 +15,9 @@ def read_dataset(
     }
     return dataset
 
+def read_txt(
+    path_txt: str
+):
+    with open(path_txt) as f:
+        content = f.read()
+    return content

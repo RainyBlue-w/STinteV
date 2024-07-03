@@ -1,22 +1,16 @@
-from dash.dash_table.Format import Format, Group, Scheme, Symbol
 from dash_extensions.enrich import html
-import dash_extensions.enrich
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import feffery_antd_components.alias as fac
 import feffery_utils_components as fuc
-
 from dash import dcc
 
 import uuid
-import os
+from flask_login import current_user
 
-from zmq import DISH
-
-from stintev.page_templates._io.read import read_dataset
-from stintev.page_templates._plot import *
-from stintev.page_templates.template_2d.plot_panel import PlotPanel
+from stintev.utils._plot import *
+from stintev.components import PlotPanel
 
 class TabOverview():
     

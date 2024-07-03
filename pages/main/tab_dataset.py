@@ -1,31 +1,18 @@
-from typing import Literal
-from dash.dash_table.Format import Format, Group, Scheme, Symbol
-import dash_extensions
-from dash_extensions.enrich import html
-import dash_extensions.enrich
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
-from dash_iconify import DashIconify
-import feffery_antd_components.alias as fac
-import feffery_utils_components as fuc
-from dash_extensions.enrich import Output, Input, State, Serverside
-from dash_extensions.enrich import callback, clientside_callback, ClientsideFunction, callback_context
 from dash import dcc
-from dash import ALL, MATCH, Patch, ctx
-from dash.exceptions import PreventUpdate
+from dash_iconify import DashIconify
 
-import uuid
 import os
-import anndata
+from flask_login import current_user
 
-from stintev.page_templates._io.read import read_dataset
-from stintev.page_templates.template_2d.dataset_list import DatasetList
+from stintev.components import UploadPanel, DatasetList
 
 class TabDataset:
     
     _width_sider = 400
     
-    def __init__(self, path_server_folder: str):
+    def __init__(self,  path_server_folder: str):
 
         # store for choosen datasets
         self.store_server_folder = dcc.Store(id = 'STORE_server_folder-dataset', data = path_server_folder)
@@ -38,6 +25,7 @@ class TabDataset:
                 self.store_server_folder,
                 self.store_dataset,
                 dmc.Tabs(
+                    id='TABS_group-dataset',
                     orientation='vertical',
                     className='dmc-Tabs-dataset',
                     value='public',
@@ -61,18 +49,32 @@ class TabDataset:
                         ),
                         dmc.TabsPanel(
                             id = 'TABS_panel_public-dataset',
-                            children = [],
+                            children = [
+                                DatasetList(
+                                    path_data_folder=os.path.join(path_server_folder,'datasets','public'),
+                                    group='public'
+                                ).list,
+                            ],
                             value = 'public'
                         ),
                         dmc.TabsPanel(
                             id = 'TABS_panel_private-dataset',
-                            children = [],
+                            children = [
+                                DatasetList(
+                                    path_data_folder=os.path.join(path_server_folder,'datasets','private', current_user.username),
+                                    group='private'
+                                ).list if current_user.is_authenticated else 
+                                DatasetList.alert_guest()
+                            ],
                             value = 'private'
                         ),
                         dmc.TabsPanel(
                             id = 'TABS_panel_upload-dataset',
-                            children = [],
-                            value = 'upload'
+                            children = [
+                                UploadPanel().panel
+                            ],
+                            value = 'upload',
+                            className = 'dmc-TabsPanel-upload-dataset'
                         ),
                     ],
                 )

@@ -1,5 +1,15 @@
 .dmc-Tabs-dataset {
-    height: calc(100vh - 100px);
+    height: 94vh;
+}
+
+.dmc-Group-upload-dataset {
+    display: flex;
+    justify-content: center;
+    height: 70%;
+}
+
+.dmc-Alert-guest-dataset {
+    width: 100%;
 }
 
 .dmc-TabsTab-sider-dataset {
@@ -8,4 +18,27 @@
 
 .dmc-TabsList-sider-dataset {
     align-items: end;
+}
+
+.div-timeline-note-upload {
+    font-size: 16px;
+    color: #a1a1a1;
+}
+
+.div-upload-dataset {
+    display: block;
+    justify-content: center;
+}
+
+.dmc-card-dataset-upload {
+    width: 30vw;
+}
+
+
+.dmc-Text-selectLabel-dataset {
+    font-size: 14px;
+}
+
+.fac-Popconfirm-delete-dataset {
+
 }
