@@ -1,11 +1,14 @@
 import dash_bootstrap_components as dbc
 from dash_extensions.enrich import html
+
 from .tab_overview import TabOverview
 from .tab_dataset import TabDataset
-from .callbacks import *
+from stintev.config import PathConfig
 
-def init_layout_2d(
-    path_server_folder: str
+import stintev.callbacks.main_c # callbacks
+
+def render_content(
+    path_server_folder: str = PathConfig.DATA_PATH,
 ):
     
     _tab_overview = TabOverview(path_server_folder)
@@ -19,8 +22,8 @@ def init_layout_2d(
         active_tab = 'TAB-dataset',
         id = '_tabs-2d',
     )
-    layout_all = html.Div(
+    layout = html.Div(
         _tabs
     )
     
-    return layout_all
+    return layout

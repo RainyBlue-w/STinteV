@@ -1,4 +1,3 @@
-import anndata
 from dash_extensions.enrich import Output, Input, html, callback, clientside_callback, ClientsideFunction
 from dash import dcc, ALL, MATCH, Patch
 from dash_iconify import DashIconify
@@ -10,8 +9,8 @@ import plotly.graph_objects as go
 
 from typing import Dict, Tuple, List
 
-from stintev.page_templates._io import *
-from stintev.page_templates._plot import *
+from stintev.utils._io import *
+from stintev.utils._plot import *
 
 class PlotPanel:
     
