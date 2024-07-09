@@ -1,3 +1,4 @@
+from os import name
 from dash_extensions.enrich import html
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
@@ -5,6 +6,7 @@ from dash_iconify import DashIconify
 import feffery_antd_components.alias as fac
 import feffery_utils_components as fuc
 from dash import dcc
+from dash_extensions.enrich import clientside_callback, Output, Input, ClientsideFunction
 
 import uuid
 from flask_login import current_user
@@ -153,8 +155,9 @@ class TabOverview():
         # content in right
         self.content = fac.Content(
             className='fac-Content',
-            children = html.Div(
-                style={'display': 'flex'},
+            children = fuc.FefferyDiv(
+                className='fuc-Grid-container-overview',
+                id='DIV_grid_container-overview',
                 children = fuc.FefferyGrid(
                     id = 'FUCGRID_content-overview',
                     className='fuc-Grid',
@@ -194,3 +197,13 @@ class TabOverview():
                 ),
             ]    
         )
+        
+clientside_callback(
+    ClientsideFunction(
+        namespace='overview',
+        function_name='grid_container_resize',
+    ),
+    Output('DIV_grid_container-overview', '_height'),
+    Input('DIV_grid_container-overview', '_width'),
+    Input('DIV_grid_container-overview', '_height')
+)

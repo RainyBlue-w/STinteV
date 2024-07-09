@@ -26,7 +26,8 @@ dashapp = DashProxy(
   __name__, 
   external_stylesheets=_stylesheets,
   external_scripts = [
-    {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'}
+    {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'},
+    # {'src': '/home/wuc/dashapps/stintev/assets/zxcvbn.js', 'type': 'module'}
   ],
   transforms = [
     LogTransform(), ServersideOutputTransform(), MultiplexerTransform()

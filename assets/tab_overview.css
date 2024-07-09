@@ -1,4 +1,5 @@
 
+
 .fac-Layout {
     height: 94vh;
     background-color: #FFFFFF;
@@ -20,10 +21,16 @@
 
 .fac-Content {
     background-color: #FFFFFF;
+    width: calc(85vw - 10px);
+}
+
+.fuc-Grid-container-overview {
+    width: calc(85vw - 10px);
+    display: flex;
 }
 
 .fuc-Grid {
-    height: 100%;
+    width: 100%;
 }
 
 .fuc-Grid .feffery-grid-item-dragger{

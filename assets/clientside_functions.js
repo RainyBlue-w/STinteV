@@ -1,4 +1,5 @@
 
+
 const pick = (obj, arr) =>
     arr.reduce((iter, val) => (val in obj && iter.push(obj[val]), iter), [])
 
@@ -225,7 +226,6 @@ function plot_expViolin3D_multi(cells, multiExp, points){
     
 }
 
-
 window.dash_clientside = Object.assign({}, window.dash_clientside, {
     plotFunc_3Dtab: {
         store_previewRange: function (x_range, y_range, z_range) {
@@ -291,5 +291,31 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 return ['no-shadow', 'no-shadow']
             }
         }
+    },
+
+    login: {
+        password_strength_zxcvbn: function (password) { // output: value, color
+            let result = zxcvbn(password)
+            let guesses_log10 = result['guesses_log10']
+            let value = Math.min(100, ( guesses_log10 / 16 )*100)
+            if(value < 40){
+                return [value, 'red']
+            }else if(value < 60){
+                return [value, 'orange']
+            }else if(value < 80){
+                return [value, 'lime']
+            }else{
+                return [value, 'green']
+            }
+
+        }
+    },
+
+    overview: {
+        grid_container_resize: function(width, height){
+            window.dispatchEvent(new Event('resize'))
+            return height
+        }
     }
+
 });

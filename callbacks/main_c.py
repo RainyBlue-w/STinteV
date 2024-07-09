@@ -279,8 +279,8 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
                                         'label': adata,
                                         'value': os.path.join(dataset_dir, adata)
                                     }
-                                    for adata in sorted( os.listdir(dataset_dir) ) 
-                                    if os.path.exists( os.path.join(dataset_dir, adata) )
+                                    for adata in sorted( os.listdir(dataset_dir) )  if adata.endswith('.h5ad')
+                                    # if os.path.exists( os.path.join(dataset_dir, adata) )
                                 ]
                             }
                         )
