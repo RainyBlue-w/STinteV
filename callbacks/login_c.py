@@ -6,6 +6,8 @@ from dash_iconify import DashIconify
 from flask_login import login_user
 import dash_mantine_components as dmc
 
+from email_validator import validate_email, EmailNotValidError
+
 from stintev.server import dashapp
 from stintev.models.auth import UserAccount, User
 from stintev.utils import str2md5
@@ -67,22 +69,32 @@ def signin(n_clicks, username, password):
     State('INPUT_username_signup-login', 'value'),
     State('INPUT_email_signup-login', 'value'),
     State('INPUT_password_signup-login', 'value'),
+    State('PROGRESS_password_strength_signup-login', 'value'),
     State('INPUT_password_confirm_signup-login', 'value'),
     State('INPUT_verification_code-login', 'value'),
     State('CAPTCHA_signup-login', 'captcha')
 )
-def signup(n_clicks, username, email, password, confirm, veri_code, captcha):
+def signup(n_clicks, username, email, password, strength, confirm, veri_code, captcha):
     
     if n_clicks:
         # 输入值全不为空
         if all([n_clicks, username, email, password, confirm, veri_code]):
+            
+            if UserAccount.query_user(username):
+                return 'Username already exists', False, False, False, False, [], True, '', no_update
+            
+            try:
+                validate_email(email, check_deliverability=True)
+            except EmailNotValidError as e:
+                return False, 'Invalid email', False, False, False, [], True, '', no_update
+            
+            if strength < 60:
+                return False, False, 'Password too weak', False, False, [], True, '', no_update
             if password != confirm:
                 return False, False, 'Password mismatch', 'Password mismatch', False, [], True, '', no_update
             if captcha != veri_code:
                 return False, False, False, False, 'Invalid verification code', [], True, '', no_update
-            if UserAccount.query_user(username):
-                return 'Username already exists', False, False, False, False, [], True, '', no_update
-            UserAccount.add_one_user(username, email, str2md5(password), 'normal')
+            UserAccount.add_one_user(username, email, password, 'normal')
             note = dmc.Notification(
                 title = 'Registration Successful!',
                 action = 'show',

@@ -1,3 +1,4 @@
+from os import name
 from dash_extensions.enrich import html
 import dash_mantine_components as dmc
 import dash_bootstrap_components as dbc
@@ -5,12 +6,13 @@ from dash_iconify import DashIconify
 import feffery_antd_components.alias as fac
 import feffery_utils_components as fuc
 from dash import dcc
+from dash_extensions.enrich import clientside_callback, Output, Input, ClientsideFunction
 
 import uuid
 from flask_login import current_user
 
 from stintev.utils._plot import *
-from stintev.components import PlotPanel
+from stintev.components import PlotPanel, PanelLinkage
 
 class TabOverview():
     
@@ -50,6 +52,8 @@ class TabOverview():
                 self._init_plot_panels[i]._index for i in range( self._n_init_plot_panels )
             ]
         )
+
+        self.drawer_panel_linkage = None
 
         # accordion item in sider (Plot settings)
         self.control_plot_settings = dmc.AccordionItem(
@@ -124,7 +128,20 @@ class TabOverview():
             ],
             value='control_plot_panels'
         )
-
+        
+        # accordion item in sider (Linkage)
+        self.control_linkage = dmc.AccordionItem(
+            children=[
+                dmc.AccordionControl(
+                    dmc.Text('Linkages', className='dmc-Text-accordionControl'),
+                ),
+                dmc.AccordionPanel(
+                    PanelLinkage.new_linkage()
+                )
+            ],
+            value = 'control_linkage'
+        )
+        
         # sider in left
         self.sider = fac.Sider(
             collapsible = False,
@@ -143,6 +160,7 @@ class TabOverview():
                         children=[
                             self.control_plot_settings,
                             self.control_plot_panels,
+                            self.control_linkage,
                         ]
                     ),
                 ]),
@@ -153,8 +171,9 @@ class TabOverview():
         # content in right
         self.content = fac.Content(
             className='fac-Content',
-            children = html.Div(
-                style={'display': 'flex'},
+            children = fuc.FefferyDiv(
+                className='fuc-Grid-container-overview',
+                id='DIV_grid_container-overview',
                 children = fuc.FefferyGrid(
                     id = 'FUCGRID_content-overview',
                     className='fuc-Grid',
@@ -194,3 +213,13 @@ class TabOverview():
                 ),
             ]    
         )
+        
+clientside_callback(
+    ClientsideFunction(
+        namespace='overview',
+        function_name='grid_container_resize',
+    ),
+    Output('DIV_grid_container-overview', '_height'),
+    Input('DIV_grid_container-overview', '_width'),
+    Input('DIV_grid_container-overview', '_height')
+)

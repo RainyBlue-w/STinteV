@@ -2,6 +2,8 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import feffery_utils_components as fuc
 from dash import html
+from dash_extensions.enrich import clientside_callback, ClientsideFunction, Output, Input, State
+from httpx import Client
 
 card_signin = dmc.Card(
     withBorder=True,
@@ -13,7 +15,7 @@ card_signin = dmc.Card(
             align='center',
             children = [
                 dmc.TextInput(
-                    w=300,
+                    w=350,
                     id = 'INPUT_username_signin-login',
                     label='Username:',
                     placeholder='Your username',
@@ -21,7 +23,7 @@ card_signin = dmc.Card(
                     persistence='local'
                 ),
                 dmc.PasswordInput(
-                    w=300,
+                    w=350,
                     id = 'INPUT_password_signin-login',
                     label="Password:",
                     placeholder="Your password",
@@ -32,13 +34,13 @@ card_signin = dmc.Card(
                     id='BUTTON_signin-login',
                     rightSection = DashIconify(icon='mdi:sign-in', width=24),
                     color='blue',
-                    w=300,
+                    w=350,
                 ),
                 dmc.Button(
                     'Sign Up',
                     id = 'BUTTON_signup-login',
                     rightSection=DashIconify(icon='fluent:document-signature-24-regular', width=24),
-                    w=300, color='violet'
+                    w=350, color='violet'
                 ),
                 # cookies for auto-login (md5 password)
                 fuc.FefferyCookie(id='COOKIE_username-login',cookieKey='username-login',defaultValue='username'),
@@ -60,28 +62,34 @@ card_signup = dmc.Card(
             children = [
                 dmc.Stack([
                     dmc.TextInput(
-                        w=300,
+                        w=350,
                         id = 'INPUT_username_signup-login',
                         label='Username:',
                         placeholder='Your username',
                         leftSection=DashIconify(icon='fluent:person-24-regular', width=24),
                     ),
                     dmc.TextInput(
-                        w=300,
+                        w=350,
                         id= 'INPUT_email_signup-login',
                         label='Email:',
                         placeholder='Your email',
                         leftSection=DashIconify(icon='fluent:mail-24-regular', width=24),
                     ),
+                    dmc.Stack(gap='sm', children=[
+                        dmc.PasswordInput(
+                            w=350,
+                            id = 'INPUT_password_signup-login',
+                            label="Password:",
+                            placeholder="Your password",
+                            leftSection=DashIconify(icon="fluent:lock-closed-24-regular", width=24),
+                        ),
+                        dmc.Progress(
+                          id = 'PROGRESS_password_strength_signup-login', value=0, color='red',
+                          w=350  
+                        ),
+                    ]),
                     dmc.PasswordInput(
-                        w=300,
-                        id = 'INPUT_password_signup-login',
-                        label="Password:",
-                        placeholder="Your password",
-                        leftSection=DashIconify(icon="fluent:lock-closed-24-regular", width=24),
-                    ),
-                    dmc.PasswordInput(
-                        w=300,
+                        w=350,
                         id = 'INPUT_password_confirm_signup-login',
                         label="Confirm  password:",
                         placeholder="Your password again",
@@ -119,4 +127,14 @@ card_signup = dmc.Card(
             ]
         )
     ]
+)
+
+clientside_callback(
+    ClientsideFunction(
+        namespace='login',
+        function_name='password_strength_zxcvbn',
+    ),
+    Output('PROGRESS_password_strength_signup-login', 'value'),
+    Output('PROGRESS_password_strength_signup-login', 'color'),
+    Input('INPUT_password_signup-login', 'value'),
 )

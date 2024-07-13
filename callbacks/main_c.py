@@ -1,18 +1,19 @@
-from dash_extensions.enrich import Output, Input, State, Serverside, html, no_update
-from dash_extensions.enrich import callback, clientside_callback, ClientsideFunction, callback_context
-from dash import ALL, MATCH, Patch, ctx
+import enum
+from dash_extensions.enrich import callback, Output, Input, State, Serverside, html, no_update, Trigger
+from dash import clientside_callback, ClientsideFunction, ALL, MATCH, Patch, ctx
 from dash.exceptions import PreventUpdate
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
 import anndata
 import os
-from typing import Literal
+import numpy as np
+from typing import List, Literal
 from flask_login import current_user
 
 from stintev.config import PathConfig
 from stintev.utils._plot import plot_feature_embedding, plot_metadata_embedding
-from stintev.components import PlotPanel, DatasetList
+from stintev.components import PlotPanel, DatasetList, PanelLinkage, DataFilter
 from stintev.server import dashapp
 
 #region update overview-grid layout
@@ -30,7 +31,7 @@ from stintev.server import dashapp
 )
 def update_height_for_plot_panel_items(height):
 
-    n_outputs = len(callback_context.outputs_grouping['styles'])
+    n_outputs = len(ctx.outputs_grouping['styles'])
     return {
         'styles': [ {'height': [f'{height-75}px']} ] * n_outputs,
         'rowHeight': height
@@ -41,21 +42,21 @@ def update_height_for_plot_panel_items(height):
     Output('STORE_plotPanelsCurUUID-overview', 'data', allow_duplicate=True),
     Output('FUCGRID_content-overview', 'layouts'),
     Output('BUTTON_setting_panels_add-overview', 'disabled'),
-   
+
     Input('BUTTON_setting_panels_add-overview', 'n_clicks'),
     Input({'type': 'PlotPanel_item_button_delete', 'index': ALL}, 'n_clicks'),
     State('STORE_plotPanelsCurUUID-overview', 'data'),
     
     State('STORE_choosen_dataset-dataset', 'data'),
     State('STORE_server_folder-dataset', 'data'),
-   prevent_initial_call=True
+    prevent_initial_call=True
 )
-def add_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_folder):
+def add_delete_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_folder):
     
     import uuid
-    
     tid = ctx.triggered_id
     children_grid = Patch()
+    
     
     if tid == 'BUTTON_setting_panels_add-overview':
         if add and (len(uuid_list) <= 5):
@@ -178,6 +179,14 @@ def upload_refresh_datasetlist_private(upload):
 #endregion
 
 #region update PlotPanel
+clientside_callback( # update PlotPanel display_idx
+    ClientsideFunction(
+        namespace='overview',
+        function_name='update_PlotPanel_display_idx'
+    ),
+    Output({'type': 'PlotPanel_badge_panel_idx', 'index': ALL}, 'children'),
+    Input('STORE_plotPanelsCurUUID-overview', 'data')
+)
 
 @dashapp.callback( # update dataset for tab_overview
     Output('STORE_choosen_dataset-dataset', 'data'),
@@ -279,8 +288,8 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
                                         'label': adata,
                                         'value': os.path.join(dataset_dir, adata)
                                     }
-                                    for adata in sorted( os.listdir(dataset_dir) ) 
-                                    if os.path.exists( os.path.join(dataset_dir, adata) )
+                                    for adata in sorted( os.listdir(dataset_dir) )  if adata.endswith('.h5ad')
+                                    # if os.path.exists( os.path.join(dataset_dir, adata) )
                                 ]
                             }
                         )
@@ -307,12 +316,13 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
 
 @dashapp.callback( # PlotPanel updates options when sample/info update
     Output({'type': 'PlotPanel_item_select_column', 'index': MATCH}, 'options'),
+    Output({'type': 'DataFilter_select_column', 'index': MATCH}, 'options'), # filter column options
     Output({'type': 'PlotPanel_item_select_embedding', 'index': MATCH}, 'options'),
     Input({'type': 'PlotPanel_item_select_info', 'index': MATCH}, 'value'),
     Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
     prevent_initial_call=True
 )
-def update_PlotPael_column_options(info, path_sample):
+def update_PlotPanel_column_options(info, path_sample):
 
     adata = anndata.read_h5ad(
         path_sample, backed='r'
@@ -320,25 +330,26 @@ def update_PlotPael_column_options(info, path_sample):
     
     tid = ctx.triggered_id
     
+    obs_columns = adata.obs.columns.to_list()
     
     if len(tid)==1 and tid['type']=='PlotPanel_item_select_info':
         if info == 'feature':
             options_column = [{'label': column, 'value': column} for column in adata.var_names]
-            return options_column, no_update
+            return options_column, no_update, no_update
         elif info == 'metadata':
             options_column = [{'label': column, 'value': column} for column in adata.obs.columns]
-            return options_column, no_update
+            return options_column, no_update, no_update
         
     elif (len(tid)==1 and tid['type']=='PlotPanel_item_select_sample') or (len(tid)==2):
         options_embedding = [{'label': i, 'value': i} for i in list(adata.obsm.keys())]
         if info and (info=='feature'):
             options_column = [{'label': column, 'value': column} for column in adata.var_names]
-            return options_column, options_embedding
+            return options_column, obs_columns, options_embedding
         elif info and (info=='metadata'):
             options_column = [{'label': column, 'value': column} for column in adata.obs.columns]
-            return options_column, options_embedding
+            return options_column, obs_columns, options_embedding
         else:
-            return no_update, options_embedding
+            return no_update, no_update, options_embedding
     else:
         raise PreventUpdate
 
@@ -390,3 +401,200 @@ def update_PlotPanel_pointSize_global(pointSize):
 
 #endregion
 
+#region linkage
+
+#clientside
+@dashapp.callback( # update options and value for linkage panels options
+    Output('PanelLinkage_select_linkage', 'options'),
+    Output('PanelLinkage_select_linkage', 'value'),
+    
+    Input('STORE_plotPanelsCurUUID-overview', 'data'),
+    State('PanelLinkage_select_linkage', 'value'),
+    
+    Trigger('BUTTON_setting_panels_add-overview', 'n_clicks'),
+    Trigger({'type': 'PlotPanel_item_button_delete', 'index': ALL}, 'n_clicks'),
+    
+    prevent_initial_call=False
+)
+def update_linkage_panels_select_opitons_and_value(list_uuid, state_value):
+
+    options = [{'label': f'Panel {i+1}', 'value': uid} for i,uid in enumerate(list_uuid)]
+    
+    if state_value is not None:
+        value =  [ i for i in state_value if i in list_uuid] 
+    else:
+        value = None
+
+    return options, value
+
+@dashapp.callback( # update linkage marks
+    Output({'type': 'PlotPanel_linkage_marks', 'index': ALL}, 'children'),
+    
+    Input('PanelLinkage_select_type', 'value'),
+    Input('PanelLinkage_select_linkage', 'value'),
+    State('STORE_plotPanelsCurUUID-overview', 'data'),
+)
+def apply_linkage(linkage_type, linkage_panels, list_cur_uuid):
+    
+    '''
+    linkage_panels: [{uuid}, {uuid}, {uuid}]
+    '''
+
+    if linkage_type and linkage_panels:
+        marks = [
+            [PanelLinkage.linkage_mark(color='orange')]
+            if i in linkage_panels 
+            else []
+            for i in list_cur_uuid
+        ]
+        return marks
+    
+    else:
+        return [None]*len(list_cur_uuid)
+
+    raise PreventUpdate
+
+#clientside
+@dashapp.callback( # update linked panels (column)
+    Output({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
+    Output({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
+    
+    Input({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
+    Input({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
+    State('PanelLinkage_select_type', 'value'),
+    State('PanelLinkage_select_linkage', 'value'),
+    State('STORE_plotPanelsCurUUID-overview', 'data'),
+    prevent_initial_call=True
+)
+def update_linked_panels_column(list_selected_column: List, list_selected_info: List, 
+                                linkage_type: List[Literal[None, 'column','view']], linkage_panels: List, list_cur_uuid: List):
+    
+    '''
+    ctx.inputs_list: [
+        [
+            {'id': {'index': 'c639caf83dfe11ef997e3cecef387085', 'type': 'PlotPanel_item_select_column'}, 'property': 'value', 'value': 'leiden'}, 
+            {'id': {'index': 'c65229b83dfe11ef997e3cecef387085', 'type': 'PlotPanel_item_select_column'}, 'property': 'value', 'value': 'leiden'}
+        ]
+    ]
+    list_selected_column: ['leiden', 'leiden']
+    linkage_panels: ['c639caf83dfe11ef997e3cecef387085', 'c65229b83dfe11ef997e3cecef387085']
+    '''
+    
+    if linkage_type is [None]:
+        raise PreventUpdate
+    
+    if 'column' in linkage_type and len(linkage_panels) >= 2:
+        return_list_column = [no_update]*len(list_cur_uuid)
+        return_list_info = [no_update]*len(list_cur_uuid)
+        tid = ctx.triggered_id
+        column_to_set = list_selected_column[list_cur_uuid.index(tid['index'])]
+        info_to_set = list_selected_info[list_cur_uuid.index(tid['index'])]
+        for i,uid in enumerate(list_cur_uuid):
+            if uid in linkage_panels and uid != ctx.triggered_id['index']:
+                return_list_column[i] = column_to_set
+                return_list_info[i] = info_to_set
+        return return_list_column, return_list_info
+    
+    raise PreventUpdate
+
+#clientside(set_props)
+@dashapp.callback( # update linked panels (view)
+    Output({'type': 'PlotPanel_item_graph', 'index': ALL}, 'figure'),
+    
+    Input({'type': 'PlotPanel_item_graph', 'index': ALL}, 'relayoutData'),
+    State('PanelLinkage_select_type', 'value'),
+    State('PanelLinkage_select_linkage', 'value'),
+    State('STORE_plotPanelsCurUUID-overview', 'data'),
+    prevent_initial_call=True
+)
+def update_linked_panels_view(list_relayoutData, linkage_type: List[Literal['column','view']], 
+                              linkage_panels: List, list_cur_uuid: List):
+    
+    if linkage_type is None:
+        raise PreventUpdate
+    
+    if 'view' in linkage_type and len(linkage_panels) >= 2:
+        fig_updates = [no_update]*len(list_cur_uuid)
+        tid = ctx.triggered_id
+        view_to_set = list_relayoutData[list_cur_uuid.index(tid['index'])]
+        for i,uid in enumerate(list_cur_uuid):
+            if uid in linkage_panels and uid != ctx.triggered_id['index']:
+                patch = Patch()
+                if 'scene.camera' in view_to_set:
+                    patch['layout']['scene']['camera'] = view_to_set['scene.camera']
+                if 'scene.aspectratio' in view_to_set:
+                    patch['layout']['scene']['aspectmode'] = 'manual'
+                    patch['layout']['scene']['aspectratio'] = view_to_set['scene.aspectratio']
+                fig_updates[i] = patch
+                
+        return fig_updates
+                
+    raise PreventUpdate
+
+#endregion
+
+#region filter
+
+@dashapp.callback( # update filter column options
+    Output({'type': 'DataFilter_select_column', 'index': MATCH}, 'options'),
+
+    Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
+)
+def update_filter_column_options(path_sample):
+
+    adata = anndata.read_h5ad(path_sample, backed='r')
+    
+    return adata.obs.columns.to_list()
+
+@dashapp.callback( # update item type (numeric/categorical)
+    Output({'type': 'DataFilter_select_type', 'index': MATCH}, 'value'),
+    Output({'type': 'DataFilter_switch_apply', 'index': MATCH}, 'checked'),
+
+    Input({'type': 'DataFilter_select_column', 'index': MATCH}, 'value'),
+    State({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
+)
+def update_selectData_FilterType_3D(selected_column, path_sample):
+
+    adata = anndata.read_h5ad(path_sample, backed='r')
+
+    if selected_column is None:
+        return no_update, False
+
+    dtype = adata.obs[selected_column].dtype
+    columnType = 'categorical' if ( dtype in [np.dtype('O'), 'category']) else 'numeric'
+
+    return columnType, False
+
+@dashapp.callback( # generate filter body
+    Output({'type': 'DataFilter_filter_body', 'index': MATCH}, 'children'),
+    
+    Input({'type': 'DataFilter_select_type', 'index': MATCH}, 'value'),
+    State({'type': 'DataFilter_select_column', 'index': MATCH}, 'value'),
+    
+    State({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
+)
+def dataFilter_generate_filter_body(
+    type: Literal[None, 'numeric','categorical'], 
+    selected_column: str,
+    path_sample: str,
+):
+    
+    adata = anndata.read_h5ad(path_sample, backed='r')
+    
+    if type == 'numeric':
+        return DataFilter.numeric_filter(
+            index=ctx.triggered_id['index'], 
+            column=selected_column, 
+            min = adata.obs[selected_column].min(), 
+            max = adata.obs[selected_column].max()
+        )
+    
+    if type == 'categorical':
+        return DataFilter.categorical_filter(
+            index=ctx.triggered_id['index'], 
+            options=sorted(adata.obs[selected_column].unique())
+        )
+    
+    raise PreventUpdate
+    
+#endregion

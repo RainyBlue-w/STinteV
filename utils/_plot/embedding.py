@@ -102,7 +102,7 @@ def _plot_feature_embedding_2d(
     plot.update_yaxes(visible=False).update_xaxes(visible=False)
     plot.update_traces(marker_size=marker_size, marker_opacity=1)
     plot.update_layout(
-        margin=dict(l=0, t=0, b=0),
+        margin=dict(l=0, t=0, b=0, r=0),
         plot_bgcolor = '#ffffff', 
         uirevision='constant',
         legend_itemsizing = 'constant',
@@ -190,8 +190,8 @@ def _plot_metadata_embedding_2d(
         color_discrete_map = cmap,
         **kws
     )
-    plot.update_yaxes(visible=False)
-    plot.update_xaxes(visible=False)
+    plot.update_xaxes(visible=False, range=[pdf['X'].min(), pdf['X'].max()])
+    plot.update_yaxes(visible=False, range=[pdf['Y'].min(), pdf['Y'].max()])
     plot.update_traces(marker_size=marker_size, marker_opacity=1)
     plot.update_layout(
         margin=dict(l=0, r=0, t=0, b=0),
@@ -235,15 +235,15 @@ def _plot_metadata_embedding_3d(
         'colorbar' : {'tickformat': '4.2f'}
       },
       scene = dict(
-          xaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
-                       gridcolor='gray', nticks=6),
-          yaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
-                       gridcolor='gray', nticks=6),
-          zaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
-                       gridcolor='gray', nticks=6),
+          xaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
+                       gridcolor='gray', nticks=6, range=[pdf['X'].min(), pdf['X'].max()],),
+          yaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
+                       gridcolor='gray', nticks=6, range=[pdf['Y'].min(), pdf['Y'].max()],),
+          zaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
+                       gridcolor='gray', nticks=6, range=[pdf['Z'].min(), pdf['Z'].max()],),
           bgcolor = 'white',
           camera = dict(projection = dict(type='orthographic') ),
-          aspectmode = 'data'
+          aspectmode = 'cube'
       )
     )
 
