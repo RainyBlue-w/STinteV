@@ -1,6 +1,6 @@
 import dash._dash_renderer
 import dash_bootstrap_components as dbc
-from dash_extensions.enrich import DashProxy, LogTransform, ServersideOutputTransform, MultiplexerTransform
+from dash_extensions.enrich import DashProxy, LogTransform, ServersideOutputTransform, MultiplexerTransform, TriggerTransform
 
 from flask_login import LoginManager, current_user
 from flask import request
@@ -30,7 +30,7 @@ dashapp = DashProxy(
     # {'src': '/home/wuc/dashapps/stintev/assets/zxcvbn.js', 'type': 'module'}
   ],
   transforms = [
-    LogTransform(), ServersideOutputTransform(), MultiplexerTransform()
+    LogTransform(), ServersideOutputTransform(), MultiplexerTransform(), TriggerTransform()
   ],
   prevent_initial_callbacks=True,
   requests_pathname_prefix='/',

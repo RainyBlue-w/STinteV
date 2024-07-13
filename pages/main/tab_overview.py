@@ -12,7 +12,7 @@ import uuid
 from flask_login import current_user
 
 from stintev.utils._plot import *
-from stintev.components import PlotPanel
+from stintev.components import PlotPanel, PanelLinkage
 
 class TabOverview():
     
@@ -52,6 +52,8 @@ class TabOverview():
                 self._init_plot_panels[i]._index for i in range( self._n_init_plot_panels )
             ]
         )
+
+        self.drawer_panel_linkage = None
 
         # accordion item in sider (Plot settings)
         self.control_plot_settings = dmc.AccordionItem(
@@ -126,7 +128,20 @@ class TabOverview():
             ],
             value='control_plot_panels'
         )
-
+        
+        # accordion item in sider (Linkage)
+        self.control_linkage = dmc.AccordionItem(
+            children=[
+                dmc.AccordionControl(
+                    dmc.Text('Linkages', className='dmc-Text-accordionControl'),
+                ),
+                dmc.AccordionPanel(
+                    PanelLinkage.new_linkage()
+                )
+            ],
+            value = 'control_linkage'
+        )
+        
         # sider in left
         self.sider = fac.Sider(
             collapsible = False,
@@ -145,6 +160,7 @@ class TabOverview():
                         children=[
                             self.control_plot_settings,
                             self.control_plot_panels,
+                            self.control_linkage,
                         ]
                     ),
                 ]),

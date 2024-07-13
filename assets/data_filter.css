@@ -1,0 +1,12 @@
+.div-DataFilter {
+    display: inline-block;
+    max-width: 600px;
+}
+
+.DataFilter-div-filterBody-numeric {
+    width: auto;
+}
+
+.DataFilter-div-filterBody-categorical {
+    width: auto;
+}

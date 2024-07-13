@@ -11,9 +11,10 @@ from typing import Dict, Tuple, List
 
 from stintev.utils._io import *
 from stintev.utils._plot import *
+from .data_filter import DataFilter
 
 class PlotPanel:
-    
+
     '''
     class to generate a plot panel, including the graph and the settings
     '''
@@ -22,18 +23,18 @@ class PlotPanel:
     _index: str = None
     _width_drawer_card: int = 220
     _height_plot_panel_item: int = 300
-    
+
     # widgets
     grid_item: fuc.FefferyGridItem = None
     settings: fuc.FefferyDiv = None
 
     # figure
     _figure: go.Figure = None
-    
+
     def __init__(
         self, 
         index: str, 
-        init_samples: List = None
+        init_samples: List = None,
     ) -> None:
         '''
         index: str
@@ -41,102 +42,143 @@ class PlotPanel:
         '''
         self._index = index
 
+        self._store = html.Div([
+            dcc.Store(id = {'type': 'PlotPanel_store_traceNumber', 'index': self._index}, data=1),
+            # store metadata columns for filtering
+            dcc.Store(id = {'type': 'PlotPanel_store_metadata_columns', 'index': self._index}) 
+        ])
+
+        self._display_idx = dmc.Group(
+            gap=3,
+            children = [
+                dmc.Badge(
+                    # children=f'Panel {display_idx}' if display_idx is not None else 'Panel',
+                    id={'type': 'PlotPanel_badge_panel_idx', 'index': self._index},
+                    variant='light', color='gray'
+                ),
+                dmc.Group(
+                    children = [],
+                    id={'type': 'PlotPanel_linkage_marks', 'index': self._index},
+                    gap=0
+                )
+            ]
+        )
+
+        self._data_button = fac.Popover(
+            trigger = 'click',
+            mouseLeaveDelay=0.1,
+            placement = 'bottom',
+            children = dmc.ActionIcon(
+                children=DashIconify(icon='fluent:database-multiple-20-regular', width=24),
+                size='md', variant='light', color='blue'
+            ),
+            content = dmc.Stack(
+                [
+                    dmc.Text('Sample', className='dmc-Text-select-label-PlotPanel'),
+                    fac.Select(
+                        placeholder='Choose a sample',
+                        locale = 'en-us',
+                        allowClear=False,
+                        id = {'type': 'PlotPanel_item_select_sample', 'index': self._index},
+                        options = init_samples if init_samples else []
+                    ),
+                    dmc.Space(h=3),
+                    dmc.Text('Embedding', className='dmc-Text-select-label-PlotPanel'),
+                    fac.Select(
+                        placeholder='Choose an embedding',
+                        locale = 'en-us',
+                        allowClear=False,
+                        id = {'type': 'PlotPanel_item_select_embedding', 'index': self._index}
+                    ),
+                    dmc.Space(h=3),
+                    dmc.Text('Info', className='dmc-Text-select-label-PlotPanel'),
+                    fac.Select(
+                        placeholder='Info to plot',
+                        locale = 'en-us',
+                        allowClear=False,
+                        id = {'type': 'PlotPanel_item_select_info', 'index': self._index},
+                        options = [
+                            {'label': 'feature', 'value': 'feature'},
+                            {'label': 'metadata', 'value': 'metadata'},
+                        ],
+                    ),
+                ],
+                gap=0,
+            )
+        )
+
+        self._settings_button = fac.Popover(
+            trigger = 'click',
+            mouseLeaveDelay=0.1,
+            placement = 'bottom',
+            children = dmc.ActionIcon(
+                children=DashIconify(icon='fluent:settings-24-regular', width=24),
+                size='md', variant='light', color='blue'
+            ),
+            content = dmc.Stack(
+                [
+                    dmc.Text('Point size', className='dmc-Text-select-label-PlotPanel'),
+                    dmc.NumberInput(
+                        id={'type': 'PlotPanel_item_pointSize', 'index': self._index},
+                        value=2, step=0.5, min=0.5,
+                    ),
+                ],
+                gap=0,
+            )
+        )
+
+        self._filter_button = fac.Popover(
+            trigger = 'click',
+            mouseLeaveDelay=0.1,
+            placement = 'bottom',
+            children = dmc.ActionIcon(
+                children=DashIconify(icon='iconoir:filter', width=24),
+                size='md', variant='light', color='blue'
+            ),
+            content = dmc.Stack(
+                gap=0,
+                children=[
+                    DataFilter(index=self._index).filter
+                ]
+            ),
+            className='fac-Popover-filter'
+        )
+
         self.grid_item_control = html.Div(
             dmc.Grid(
                 columns=100,
                 align='end',
                 gutter='5px',
                 children=[
-                        # data button
-                        dmc.GridCol(
-                            children = fac.Popover(
-                                trigger = 'click',
-                                mouseLeaveDelay=0.1,
-                                placement = 'bottom',
-                                children = dmc.ActionIcon(
-                                    children=DashIconify(icon='fluent:database-multiple-20-regular', width=24),
-                                    size='lg', variant='light', color='blue'
+                    dmc.GridCol(
+                        children= dmc.Stack(
+                            gap=3,
+                            children = [
+                                self._display_idx,
+                                dmc.Group(
+                                    gap=3,
+                                    children=[
+                                        self._data_button, 
+                                        self._settings_button, 
+                                        self._filter_button, 
+                                        # self._linkage_button
+                                    ]
                                 ),
-                                content = dmc.Stack(
-                                    [
-                                        dmc.Text('Sample', className='dcc-DropDown-PlotPanel-item-label-column'),
-                                        fac.Select(
-                                            placeholder='Choose a sample',
-                                            locale = 'en-us',
-                                            allowClear=False,
-                                            id = {'type': 'PlotPanel_item_select_sample', 'index': self._index},
-                                            options = init_samples if init_samples else []
-                                        ),
-                                        dmc.Space(h=3),
-                                        dmc.Text('Embedding', className='dcc-DropDown-PlotPanel-item-label-column'),
-                                        fac.Select(
-                                            placeholder='Choose an embedding',
-                                            locale = 'en-us',
-                                            allowClear=False,
-                                            id = {'type': 'PlotPanel_item_select_embedding', 'index': self._index}
-                                        ),
-                                        dmc.Space(h=3),
-                                        dmc.Text('Info', className='dcc-DropDown-PlotPanel-item-label-column'),
-                                        fac.Select(
-                                            placeholder='Info to plot',
-                                            locale = 'en-us',
-                                            allowClear=False,
-                                            id = {'type': 'PlotPanel_item_select_info', 'index': self._index},
-                                            options = [
-                                                {'label': 'feature', 'value': 'feature'},
-                                                {'label': 'metadata', 'value': 'metadata'},
-                                            ],
-                                    ),
-                                    ],
-                                    gap=0,
-                                )
-                            ),
-                            span='content'
+                            ]
                         ),
-                        
-                        # settings button
-                        dmc.GridCol(
-                        children = fac.Popover(
-                            trigger = 'click',
-                                mouseLeaveDelay=0.1,
-                                placement = 'bottom',
-                                children = dmc.ActionIcon(
-                                    children=DashIconify(icon='fluent:settings-24-regular', width=24),
-                                    size='lg', variant='light', color='blue'
-                                ),
-                                content = dmc.Stack(
-                                    [
-                                        dmc.Text('Point size', className='dcc-DropDown-PlotPanel-item-label-column'),
-                                        dmc.NumberInput(
-                                            id={'type': 'PlotPanel_item_pointSize', 'index': self._index},
-                                            value=2, step=0.5, min=0.5,
-                                        ),
-                                    ],
-                                    gap=0,
-                                )
-                            ),
-                            span='content'
-                        ),
-                        
-                        # filter button
-                        dmc.GridCol(
-                            children = dmc.ActionIcon(
-                                children=DashIconify(icon='iconoir:filter', width=24),
-                                size='lg', variant='light', color='blue'
-                            ),
-                            span='content'
-                        ),
-                        
-                    # column dropdown
+                        span='content'
+                    ),
+                    
+                    # select column
                     dmc.GridCol(
                         dmc.Stack(
                             [
-                                dmc.Text('Column', className='dcc-DropDown-PlotPanel-item-label-column'),
+                                dmc.Text('Column', className='dmc-Text-select-label-PlotPanel'),
                                 fac.Select(
                                     locale = 'en-us',
                                     allowClear=False,
                                     optionFilterMode = 'case-sensitive',
-                                    id = {'type': 'PlotPanel_item_select_column', 'index': self._index}
+                                    id = {'type': 'PlotPanel_item_select_column', 'index': self._index},
                                 ),
                             ],
                             gap=0
@@ -149,7 +191,7 @@ class PlotPanel:
                         dmc.ActionIcon(
                             DashIconify(icon='gg:close-r', width=24),
                             id = {'type': 'PlotPanel_item_button_delete', 'index': self._index},
-                            size='lg', variant='light', color='red'
+                            size='md', variant='light', color='red'
                         ),
                         span='content'
                     )
@@ -164,11 +206,11 @@ class PlotPanel:
             children=[
                 fuc.FefferyDiv(
                     id = {'type':'PlotPanel_item_div', 'index': self._index},
-                    shadow = 'hover-shadow',
+                    # shadow = 'hover-shadow',
                     className = 'fuc-div-plotPanel-gridItem',
                     children=[
                         self.grid_item_control,
-                        dcc.Store(id = {'type': 'PlotPanel_store_traceNumber', 'index': self._index}, data=1),
+                        self._store,
                         dcc.Graph(
                             id={'type': 'PlotPanel_item_graph', 'index': self._index},
                             figure=px.scatter().update_layout(
@@ -189,14 +231,54 @@ class PlotPanel:
             ]
         )
 
+class PanelLinkage:
 
-clientside_callback(
-    ClientsideFunction(
-        namespace='plot_panel_2d',
-        function_name='plotpanel_sync_shadow_between_card_and_item'
-    ),
-    Output({'type':'PlotPanel_settings_card_div', 'index': MATCH}, 'shadow'),
-    Output({'type':'PlotPanel_item_div', 'index': MATCH}, 'shadow'),
-    Input({'type':'PlotPanel_settings_card_div', 'index': MATCH}, 'isHovering'),
-    Input({'type':'PlotPanel_item_div', 'index': MATCH}, 'isHovering'),
-)
+    @staticmethod
+    def new_linkage():
+        linkage = dmc.Group(
+            gap=3,
+            children=[
+                dmc.Stack(
+                    gap=0,
+                    children=[
+                        dmc.Text('Type', className='dmc-Text-select-label-sider'),
+                        fac.Select(
+                            placeholder='Type',
+                            locale = 'en-us',
+                            allowClear=False,
+                            id = 'PanelLinkage_select_type',
+                            style={'width': 'calc(15vw - 30px)'},
+                            options = [
+                                {'label': 'column', 'value': 'column'},
+                                {'label': 'view', 'value': 'view'},
+                            ],
+                            mode = 'multiple'
+                        ),
+                    ]
+                ),
+                dmc.Stack(
+                    gap=0,
+                    children=[
+                        dmc.Text('Linkage', className='dmc-Text-select-label-sider'),
+                        fac.Select(
+                            placeholder='Choose Panels',
+                            locale = 'en-us',
+                            allowClear=False,
+                            id = 'PanelLinkage_select_linkage',
+                            options=[],
+                            mode='multiple',
+                            style={'width': 'calc(15vw - 30px)'},
+                        ),
+                        
+                    ]
+                )
+            ]
+        )
+        return linkage
+    
+    @staticmethod
+    def linkage_mark(color='blue'):
+        return dmc.ThemeIcon(
+            children=DashIconify(icon='fluent:link-square-24-filled', width=16),
+            size = 'sm', color=color, variant='transparent'
+        )
