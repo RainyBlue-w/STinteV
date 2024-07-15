@@ -39,7 +39,7 @@ class TabOverview():
     dataset = None
 
     # Tab init
-    def __init__(self, path_server_folder: str) -> None:
+    def __init__(self, path_data_folder: str) -> None:
 
         self._init_plot_panels = [ 
             PlotPanel(index=uuid.uuid1().hex),

@@ -8,11 +8,11 @@ from stintev.config import PathConfig
 import stintev.callbacks.main_c # callbacks
 
 def render_content(
-    path_server_folder: str = PathConfig.DATA_PATH,
+    path_data_folder: str = PathConfig.DATA_PATH,
 ):
     
-    _tab_overview = TabOverview(path_server_folder)
-    _tab_dataset = TabDataset(path_server_folder)
+    _tab_overview = TabOverview(path_data_folder)
+    _tab_dataset = TabDataset(path_data_folder)
 
     _tabs = dbc.Tabs(
         children=[

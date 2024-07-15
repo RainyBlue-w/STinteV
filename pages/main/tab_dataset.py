@@ -12,10 +12,10 @@ class TabDataset:
     
     _width_sider = 400
     
-    def __init__(self,  path_server_folder: str):
+    def __init__(self,  path_data_folder: str):
 
         # store for choosen datasets
-        self.store_server_folder = dcc.Store(id = 'STORE_server_folder-dataset', data = path_server_folder)
+        self.store_server_folder = dcc.Store(id = 'STORE_server_folder-dataset', data = path_data_folder)
         self.store_dataset = dcc.Store(id = 'STORE_choosen_dataset-dataset')
         
         self.tab = dbc.Tab(
@@ -51,7 +51,7 @@ class TabDataset:
                             id = 'TABS_panel_public-dataset',
                             children = [
                                 DatasetList(
-                                    path_data_folder=os.path.join(path_server_folder,'datasets','public'),
+                                    path_data_folder=os.path.join(path_data_folder,'datasets','public'),
                                     group='public'
                                 ).list,
                             ],
@@ -61,7 +61,7 @@ class TabDataset:
                             id = 'TABS_panel_private-dataset',
                             children = [
                                 DatasetList(
-                                    path_data_folder=os.path.join(path_server_folder,'datasets','private', current_user.username),
+                                    path_data_folder=os.path.join(path_data_folder,'datasets','private', current_user.username),
                                     group='private'
                                 ).list if current_user.is_authenticated else 
                                 DatasetList.alert_guest()
