@@ -56,6 +56,7 @@ class DatasetList:
                         withBorder=True,
                         children=[
                             dmc.Checkbox(
+                                persistence='local',
                                 value=dataset,
                                 size='lg',
                                 label=[
@@ -64,14 +65,14 @@ class DatasetList:
                                         children=[
                                             dmc.Group(
                                                 children=[
-                                                    dmc.Text(dataset, size='lg'),
-                                                    dmc.Burger(
+                                                    dmc.Text(dataset, size='lg'), # dataset名称
+                                                    dmc.Burger( # 展开按钮
                                                         id={'type': 'DatasetList-burger-button', 'index': f'{group}-{dataset}'},
                                                         opened=False,
                                                         style={'position': 'absolute', 'right': '45px'}
                                                     ),
                                                     html.Div( # 避免popconfirm直接施加到position: absolute元素导致的悬浮层定位问题，absolute改为施加到该div上
-                                                        children = fac.Popconfirm(
+                                                        children = fac.Popconfirm( # 删除按钮（确认弹窗）
                                                             children = dmc.ActionIcon(
                                                                 DashIconify(icon='gg:close-r', width=24),
                                                                 size='lg', variant='light', color='red',
@@ -94,6 +95,7 @@ class DatasetList:
                                                         style={'position': 'absolute', 'right': '10px'}
                                                     )
                                                 ] if group=='private' else [
+                                                    # public dataset不显示删除按钮
                                                     dmc.Text(dataset, size='lg'),
                                                     dmc.Burger(
                                                         id={'type': 'DatasetList-burger-button', 'index': f'{group}-{dataset}'},
@@ -103,7 +105,7 @@ class DatasetList:
                                                 ],
                                             ),
                                             dmc.Space(h=5),
-                                            html.Div(
+                                            html.Div( # 文件列表
                                                 hidden=True,
                                                 children=dmc.Stack(
                                                     [dmc.Text(file, size='md', c='gray') for file in files],
@@ -116,7 +118,7 @@ class DatasetList:
                                 ]
                             ),
                             dmc.Space(h=5),
-                            dmc.CardSection(
+                            dmc.CardSection( # 描述
                                 children=[
                                     dmc.Text(
                                         children=read_txt(os.path.join(path_data_folder, dataset, 'description.txt')),
@@ -131,7 +133,7 @@ class DatasetList:
             )
         
         if len(content) == 0:
-            content.append(
+            content.append( # 无数据集时的提示
                 dmc.GridCol(
                     DatasetList.alert_empty(),
                     span=12

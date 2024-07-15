@@ -3,7 +3,6 @@ from dash_iconify import DashIconify
 import feffery_utils_components as fuc
 from dash import html
 from dash_extensions.enrich import clientside_callback, ClientsideFunction, Output, Input, State
-from httpx import Client
 
 card_signin = dmc.Card(
     withBorder=True,
@@ -42,9 +41,6 @@ card_signin = dmc.Card(
                     rightSection=DashIconify(icon='fluent:document-signature-24-regular', width=24),
                     w=350, color='violet'
                 ),
-                # cookies for auto-login (md5 password)
-                fuc.FefferyCookie(id='COOKIE_username-login',cookieKey='username-login',defaultValue='username'),
-                fuc.FefferyCookie(id='COOKIE_password-login',cookieKey='password-login',defaultValue='passname'),
                 html.Div(id='debug-login')
             ]
         )

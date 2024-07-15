@@ -1,4 +1,3 @@
-import enum
 from dash_extensions.enrich import callback, Output, Input, State, Serverside, html, no_update, Trigger
 from dash import clientside_callback, ClientsideFunction, ALL, MATCH, Patch, ctx
 from dash.exceptions import PreventUpdate

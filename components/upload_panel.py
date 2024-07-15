@@ -12,7 +12,7 @@ import os
 from stintev.config import PathConfig
 
 class UploadPanel:
-    
+
     @staticmethod
     def information_card():
         return dmc.Stack(
