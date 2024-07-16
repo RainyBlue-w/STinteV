@@ -15,6 +15,7 @@ from stintev.config import PathConfig
 from stintev.utils._plot import plot_feature_embedding, plot_metadata_embedding
 from stintev.components import PlotPanel, DatasetList, PanelLinkage, DataFilter
 from stintev.server import dashapp
+from stintev.utils._io import rds_to_h5ad
 
 #region update overview-grid layout
 
@@ -162,12 +163,16 @@ def create_refresh_datasetlist_private(dataset_name):
 )
 def upload_refresh_datasetlist_private(upload):
     if upload:
+        path_folder = os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.username)
+        if upload['fileName'].endswith(".rds"):
+            rds_file_path = os.path.join(path_folder, upload['taskId'], upload['fileName'])
+            rds_to_h5ad(rds_file_path)
         return [
             html.Div(
                 id = f'TabsTabDataSet-contetn-private',
                 children=[
                     DatasetList(
-                        path_data_folder=os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.username),
+                        path_data_folder=path_folder,
                         group='private'
                     ).list,
                 ]

@@ -93,10 +93,10 @@ class UploadPanel:
                     locale='en-us',
                     apiUrl='/upload/',
                     fileMaxSize=3072,
-                    multiple=True,
+                    multiple=False,
                     directory=False,
-                    fileTypes = ['h5ad'],
-                    text='Upload the .h5ad files',
+                    fileTypes = ['h5ad', 'rds'],
+                    text='Upload .h5ad or .rds files',
                     hint='Click or drag the files to this area to upload',
                 ),
                 dmc.Button(
