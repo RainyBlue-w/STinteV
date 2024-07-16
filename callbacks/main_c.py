@@ -12,7 +12,7 @@ from flask_login import current_user
 
 from stintev.config import PathConfig
 from stintev.utils._plot import plot_feature_embedding, plot_metadata_embedding
-from stintev.components import PlotPanel, DatasetList, PanelLinkage, DataFilter
+from stintev.components import PlotPanel, DatasetList, PanelLinkages, DataFilter
 from stintev.server import dashapp
 
 #region update overview-grid layout
@@ -56,7 +56,6 @@ def add_delete_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_f
     tid = ctx.triggered_id
     children_grid = Patch()
     
-    
     if tid == 'BUTTON_setting_panels_add-overview':
         if add and (len(uuid_list) <= 5):
             options = []
@@ -88,7 +87,7 @@ def add_delete_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_f
             uuid_list.append(
                 next_PlotPanel._index
             )
-            
+    
     elif ('type' in tid) and (tid['type'] == 'PlotPanel_item_button_delete') and (len(uuid_list) > 1):
         del_index = tid['index']
         for i, index in enumerate(uuid_list):
@@ -150,7 +149,7 @@ def create_refresh_datasetlist_private(dataset_name):
                 group='private'
             ).list
             if current_user.is_authenticated else 
-            DatasetList.alert()
+            DatasetList.alert_guest()
         )
     else:
         raise PreventUpdate
@@ -352,6 +351,7 @@ def update_PlotPanel_column_options(info, path_sample):
     else:
         raise PreventUpdate
 
+#clientside
 @dashapp.callback( # update PlotPanel figure
     Output({'type': 'PlotPanel_item_graph', 'index': MATCH}, 'figure'),
     Output({'type': 'PlotPanel_store_traceNumber', 'index': MATCH}, 'data'),
@@ -361,23 +361,27 @@ def update_PlotPanel_column_options(info, path_sample):
     
     Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
     Input({'type': 'PlotPanel_item_select_info', 'index': MATCH}, 'value'),
+    Input({'type': 'DataFilter_store_preserved_cells', 'index': MATCH}, 'data'),
     prevent_initial_call=True
 )
-def update_PlotPanel_figure(column, embedding, path_sample, info):
+def update_PlotPanel_figure(column, embedding, path_sample, info, preserved_cells):
     
     adata = anndata.read_h5ad(
         path_sample, backed='r'
     )
-
+    
+    if preserved_cells is None or len(preserved_cells) < 1:
+        preserved_cells = adata.obs_names
+    
     if info == 'feature' and column and embedding and path_sample and info:
-        figure = plot_feature_embedding(adata, column, embedding)
+        figure = plot_feature_embedding(adata, preserved_cells, column, embedding)
         traceNumber = 1
     elif info == 'metadata' and column and embedding and path_sample and info:
-        figure = plot_metadata_embedding(adata, column, embedding)
+        figure = plot_metadata_embedding(adata, preserved_cells, column, embedding)
         traceNumber = len(adata.obs[column].unique())
     else:
         raise PreventUpdate
-
+    
     return figure, traceNumber
 
 @dashapp.callback( # update marker_size panel
@@ -404,56 +408,172 @@ def update_PlotPanel_pointSize_global(pointSize):
 
 #clientside
 @dashapp.callback( # update options and value for linkage panels options
-    Output('PanelLinkage_select_linkage', 'options'),
-    Output('PanelLinkage_select_linkage', 'value'),
+    Output({'type': 'PanelLinkages_select_linkage', 'index': ALL}, 'data'),
+    Output({'type': 'PanelLinkages_select_linkage', 'index': ALL}, 'value'),
     
-    Input('STORE_plotPanelsCurUUID-overview', 'data'),
-    State('PanelLinkage_select_linkage', 'value'),
-    
-    Trigger('BUTTON_setting_panels_add-overview', 'n_clicks'),
-    Trigger({'type': 'PlotPanel_item_button_delete', 'index': ALL}, 'n_clicks'),
-    
+    Input('STORE_plotPanelsCurUUID-overview', 'data'), # update when add/delete PlotPanel
+    State({'type': 'PanelLinkages_select_linkage', 'index': ALL}, 'value'),
+
     prevent_initial_call=False
 )
-def update_linkage_panels_select_opitons_and_value(list_uuid, state_value):
+def update_linkage_panels_select_opitons_and_value(list_uuid, list_state_value):
 
     options = [{'label': f'Panel {i+1}', 'value': uid} for i,uid in enumerate(list_uuid)]
     
-    if state_value is not None:
-        value =  [ i for i in state_value if i in list_uuid] 
-    else:
-        value = None
+    values = []
+    for state_value in list_state_value:
+        if state_value is not None:
+            values.append([ i for i in state_value if i in list_uuid])
+        else:
+            values.append(no_update)
 
-    return options, value
+    return [options]*len(ctx.outputs_list[0]), values
 
 @dashapp.callback( # update linkage marks
     Output({'type': 'PlotPanel_linkage_marks', 'index': ALL}, 'children'),
-    
-    Input('PanelLinkage_select_type', 'value'),
-    Input('PanelLinkage_select_linkage', 'value'),
-    State('STORE_plotPanelsCurUUID-overview', 'data'),
+    inputs={
+        'all_inputs': {
+            'list_types': Input({'type': 'PanelLinkages_select_type', 'index': ALL}, 'value'),
+            'list_panels': Input({'type': 'PanelLinkages_select_linkage', 'index': ALL}, 'value'),
+            'list_apply': Input({'type': 'PanelLinkages_switch_apply', 'index': ALL}, 'checked'),
+        },
+        'all_states': {
+            'list_plotPanels_curUUID': State('STORE_plotPanelsCurUUID-overview', 'data')
+        }
+    },
 )
-def apply_linkage(linkage_type, linkage_panels, list_cur_uuid):
+def apply_linkage(all_inputs, all_states):
     
-    '''
-    linkage_panels: [{uuid}, {uuid}, {uuid}]
+    '''ctx.args_grouping.all_inputs: 
+    {
+        'list_types': [
+            {
+                'id': {'index': '4d2cf75a435011ef959c3cecef387085', 'type': 'PanelLinkages_select_type'}, 
+                'property': 'value', 'value': ['sample', 'embedding'], 
+                'str_id': '{"index":"4d2cf75a435011ef959c3cecef387085","type":"PanelLinkages_select_type"}', 
+                'triggered': True
+            }, 
+            {
+                'id': {'index': '547bc360435011efab683cecef387085', 'type': 'PanelLinkages_select_type'}, 
+                'property': 'value', 'value': ['column', 'view'], 
+                'str_id': '{"index":"547bc360435011efab683cecef387085","type":"PanelLinkages_select_type"}', 
+                'triggered': False
+            }
+        ], 
+        'list_panels': [
+            {
+                'id': {'index': '4d2cf75a435011ef959c3cecef387085', 'type': 'PanelLinkages_select_linkage'}, 
+                'property': 'value', 
+                'value': ['4d28e2e6435011ef959c3cecef387085', '4cee8880435011ef959c3cecef387085'], 
+                'str_id': '{"index":"4d2cf75a435011ef959c3cecef387085","type":"PanelLinkages_select_linkage"}', 
+                'triggered': False
+            }, 
+            {
+                'id': {'index': '547bc360435011efab683cecef387085', 'type': 'PanelLinkages_select_linkage'}, 
+                'property': 'value', 
+                'value': ['4d28e2e6435011ef959c3cecef387085', '4cee8880435011ef959c3cecef387085'], 
+                'str_id': '{"index":"547bc360435011efab683cecef387085","type":"PanelLinkages_select_linkage"}', 
+                'triggered': False
+            }
+        ], 
+        'list_apply': [
+            {
+                'id': {'index': '4d2cf75a435011ef959c3cecef387085', 'type': 'PanelLinkages_switch_apply'}, 
+                'property': 'checked', 'value': False, 
+                'str_id': '{"index":"4d2cf75a435011ef959c3cecef387085","type":"PanelLinkages_switch_apply"}', 
+                'triggered': False
+            }, 
+            {
+                'id': {'index': '547bc360435011efab683cecef387085', 'type': 'PanelLinkages_switch_apply'}, 
+                'property': 'checked', 'value': False, 
+                'str_id': '{"index":"547bc360435011efab683cecef387085","type":"PanelLinkages_switch_apply"}', 
+                'triggered': False
+            }
+        ]
+    }
     '''
 
-    if linkage_type and linkage_panels:
-        marks = [
-            [PanelLinkage.linkage_mark(color='orange')]
-            if i in linkage_panels 
-            else []
-            for i in list_cur_uuid
-        ]
-        return marks
+    color_sequence = ['red', 'blue', 'green', 'orange', 'purple', 'cyan']
+    i = -1
+    list_linkage_type = [item['value'] for item in ctx.args_grouping.all_inputs.list_types]
+    list_selected_panels = [item['value'] for item in ctx.args_grouping.all_inputs.list_panels]
+    list_linkage_apply = [item['value'] for item in ctx.args_grouping.all_inputs.list_apply]
+    panels_curUUID = all_states['list_plotPanels_curUUID']
+    marks = [[]] * len(panels_curUUID)
+    for type, panels, apply in zip(list_linkage_type, list_selected_panels, list_linkage_apply): # 对每条linkage
+        # 颜色迭代器
+        i += 1
+        i = i % 3
+        if apply and type: # 如果应用linkage
+            for panel in panels: # 对于选中的每个panel（uid）
+                index = panels_curUUID.index(panel) # 找到uid对应的现有panel的位置
+                print(index)
+                marks[index] = marks[index] + [
+                    PanelLinkages.linkage_mark(color=color_sequence[i])
+                ] # 不能改成marks[index].append(...)或者marks[index]+=...，否则从marks为[[],[], ...]时每次都会会给所有panels添加mark
+        else: # 不应用的话则跳过
+            continue
+    return marks
+
+#clientside
+@dashapp.callback( # update linked panels (sample)
+    Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
     
-    else:
-        return [None]*len(list_cur_uuid)
+    Input({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
+    State('PanelLinkage_select_type', 'value'),
+    State('PanelLinkage_select_linkage', 'value'),
+    State('STORE_plotPanelsCurUUID-overview', 'data'),
+)
+def update_linked_panels_sample(
+    list_selected_sample: List, 
+    linkage_type: List[Literal[None, 'column','view', 'sample', 'embedding']], 
+    linkage_panels: List, 
+    list_cur_uuid: List
+):
+    
+    if linkage_type is [None] or linkage_type is None:
+        raise PreventUpdate
+
+    if 'sample' in linkage_type and len(linkage_panels) >= 2:
+        return_list = [no_update]*len(list_cur_uuid)
+        tid = ctx.triggered_id
+        sample_to_set = list_selected_sample[list_cur_uuid.index(tid['index'])]
+        for i,uid in enumerate(list_cur_uuid):
+            if uid in linkage_panels and uid != ctx.triggered_id['index']:
+                return_list[i] = sample_to_set
+        return return_list
 
     raise PreventUpdate
 
-#clientside
+@dashapp.callback( # update linked panels (embeddings)
+    Output({'type': 'PlotPanel_item_select_embedding', 'index': ALL}, 'value'),
+
+    Input({'type': 'PlotPanel_item_select_embedding', 'index': ALL}, 'value'),
+    State('PanelLinkage_select_type', 'value'),
+    State('PanelLinkage_select_linkage', 'value'),
+    State('STORE_plotPanelsCurUUID-overview', 'data'),
+)
+def update_linked_panels_embedding(
+    list_selected_embedding: List, 
+    linkage_type: List[Literal[None, 'column','view', 'sample', 'embedding']], 
+    linkage_panels: List, 
+    list_cur_uuid: List
+):
+    
+    if linkage_type is [None] or linkage_type is None:
+        raise PreventUpdate
+
+    if 'embedding' in linkage_type and len(linkage_panels) >= 2:
+        return_list = [no_update]*len(list_cur_uuid)
+        tid = ctx.triggered_id
+        embedding_to_set = list_selected_embedding[list_cur_uuid.index(tid['index'])]
+        for i,uid in enumerate(list_cur_uuid):
+            if uid in linkage_panels and uid != ctx.triggered_id['index']:
+                return_list[i] = embedding_to_set
+        return return_list
+
+    raise PreventUpdate
+
 @dashapp.callback( # update linked panels (column)
     Output({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
     Output({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
@@ -466,7 +586,7 @@ def apply_linkage(linkage_type, linkage_panels, list_cur_uuid):
     prevent_initial_call=True
 )
 def update_linked_panels_column(list_selected_column: List, list_selected_info: List, 
-                                linkage_type: List[Literal[None, 'column','view']], linkage_panels: List, list_cur_uuid: List):
+                                linkage_type: List[Literal[None, 'column','view', 'sample', 'embedding']], linkage_panels: List, list_cur_uuid: List):
     
     '''
     ctx.inputs_list: [
@@ -479,9 +599,9 @@ def update_linked_panels_column(list_selected_column: List, list_selected_info: 
     linkage_panels: ['c639caf83dfe11ef997e3cecef387085', 'c65229b83dfe11ef997e3cecef387085']
     '''
     
-    if linkage_type is [None]:
+    if linkage_type is [None] or linkage_type is None:
         raise PreventUpdate
-    
+
     if 'column' in linkage_type and len(linkage_panels) >= 2:
         return_list_column = [no_update]*len(list_cur_uuid)
         return_list_info = [no_update]*len(list_cur_uuid)
@@ -506,12 +626,15 @@ def update_linked_panels_column(list_selected_column: List, list_selected_info: 
     State('STORE_plotPanelsCurUUID-overview', 'data'),
     prevent_initial_call=True
 )
-def update_linked_panels_view(list_relayoutData, linkage_type: List[Literal['column','view']], 
-                              linkage_panels: List, list_cur_uuid: List):
-    
-    if linkage_type is None:
+def update_linked_panels_view(
+    list_relayoutData, 
+    linkage_type: List[Literal[None, 'column','view', 'sample', 'embedding']], 
+    linkage_panels: List, list_cur_uuid: List
+):
+
+    if linkage_type is [None] or linkage_type is None:
         raise PreventUpdate
-    
+
     if 'view' in linkage_type and len(linkage_panels) >= 2:
         fig_updates = [no_update]*len(list_cur_uuid)
         tid = ctx.triggered_id
@@ -595,5 +718,45 @@ def dataFilter_generate_filter_body(
         )
     
     raise PreventUpdate
+
+#clientside
+@dashapp.callback( # update STORE(serverside) for preserved_cells
+    Output({'type': 'DataFilter_store_preserved_cells', 'index': MATCH}, 'data'),
+    Output({'type': 'DataFilter_text_number', 'index': MATCH}, 'children'),
     
-#endregion
+    Input({'type': 'DataFilter_switch_apply', 'index': MATCH}, 'checked'),
+    State({'type': 'DataFilter_select_column', 'index': MATCH}, 'value'),
+    State({'type': 'DataFilter_select_type', 'index': MATCH}, 'value'),
+    Input({'type': 'DataFilter_numberInput_left', 'index': MATCH}, 'value'),
+    Input({'type': 'DataFilter_numberInput_right', 'index': MATCH}, 'value'),
+    Input({'type': 'DataFilter_transfer', 'index': MATCH}, 'targetKeys'),
+    Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
+)
+def dataFilter_apply_filter_store_preserved_cells(
+    checked: bool,
+    selected_column: str,
+    type: Literal[None, 'numeric','categorical'],
+    min: float,
+    max: float,
+    transfer: str,
+    path_sample: str,
+):
+    
+    adata = anndata.read_h5ad(path_sample, backed='r')
+    
+    if checked:
+        if type == 'numeric':
+            preserved_cells = adata.obs.index[
+                (adata.obs[selected_column] >= min) & (adata.obs[selected_column] <= max)
+            ].tolist()
+            return Serverside(preserved_cells), f'Selected cells: {len(preserved_cells)}'
+        
+        if type == 'categorical':
+            preserved_cells = adata.obs.index[
+                adata.obs[selected_column].isin(transfer)
+            ].tolist()
+            return Serverside(preserved_cells), f'Selected cells: {len(preserved_cells)}'
+    else:
+        return Serverside(adata.obs_names.to_list()), 'Selected cells: 0'
+
+# endregion

@@ -224,4 +224,3 @@ def delete_private_dataset(list_clicks, curIndexes):
         
     else:   # 拦截生成组件时产生的触发
         raise PreventUpdate
-            

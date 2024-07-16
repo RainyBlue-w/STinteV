@@ -12,7 +12,7 @@ import uuid
 from flask_login import current_user
 
 from stintev.utils._plot import *
-from stintev.components import PlotPanel, PanelLinkage
+from stintev.components import PlotPanel, PanelLinkages
 
 class TabOverview():
     
@@ -136,7 +136,7 @@ class TabOverview():
                     dmc.Text('Linkages', className='dmc-Text-accordionControl'),
                 ),
                 dmc.AccordionPanel(
-                    PanelLinkage.new_linkage()
+                    PanelLinkages.linkage_settings()
                 )
             ],
             value = 'control_linkage'
@@ -161,7 +161,8 @@ class TabOverview():
                             self.control_plot_settings,
                             self.control_plot_panels,
                             self.control_linkage,
-                        ]
+                        ],
+                        value='control_linkage'
                     ),
                 ]),
             ),

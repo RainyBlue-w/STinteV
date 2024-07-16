@@ -15,9 +15,12 @@ class DataFilter:
     def __init__(self, index):
         self._index = index
         
+        self.store_preserved_cells = dcc.Store(id={'type': 'DataFilter_store_preserved_cells', 'index': self._index})
+        
         self.filter = html.Div(
             className='div-DataFilter',
             children=[
+                self.store_preserved_cells,
                 dmc.Grid(
                     align='center',
                     children=[
@@ -61,7 +64,7 @@ class DataFilter:
                 # dmc.Space(h=5),
             ]
         )
-
+    
     @staticmethod
     def numeric_filter(index, column, min=None, max=None):
         return html.Div(
