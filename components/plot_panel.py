@@ -54,17 +54,18 @@ class PlotPanel:
         self._display_idx = dmc.Group(
             gap=3,
             children = [
-                dmc.Badge(
-                    # children=f'Panel {display_idx}' if display_idx is not None else 'Panel',
-                    id={'type': 'PlotPanel_badge_panel_idx', 'index': self._index},
-                    variant='light', color='gray'
-                ),
-                dmc.Group(
+                dmc.Group( # linkage marks
                     children = [],
                     id={'type': 'PlotPanel_linkage_marks', 'index': self._index},
-                    gap=0
-                )
-            ]
+                    gap=0,
+                    style = {'position': 'absolute', 'left': '5px', 'top': '5px'}
+                ),
+                dmc.Badge( # panel idx badge
+                    id={'type': 'PlotPanel_badge_panel_idx', 'index': self._index},
+                    variant='light', color='gray',
+                    style = {'position': 'absolute', 'right': '25px', 'top': '5px'}
+                ),
+            ],
         )
 
         self._data_button = fac.Popover(

@@ -1,3 +1,4 @@
+from typing import Literal, List
 from dash_extensions.enrich import Output, Input, State, no_update, html, callback, ALL, MATCH, ctx
 from dash import dcc, Patch
 from dash.exceptions import PreventUpdate
@@ -6,8 +7,12 @@ import dash_mantine_components as dmc
 
 import uuid
 
+
 class PanelLinkages:
 
+    linkage_types = ['column', 'view', 'sample', 'embedding']
+    LinkageTypes = List[Literal['column', 'view', 'sample', 'embedding', None]]
+    
     @staticmethod
     def new_linkage(index):
         linkage = dmc.Card(
@@ -17,18 +22,25 @@ class PanelLinkages:
                 dmc.CardSection(
                     children=dmc.Group(
                         [
+                            dmc.ThemeIcon(
+                                children=DashIconify(icon="mdi:link-variant", width=24),
+                                color = 'gray', variant='transparent', size='sm',
+                                id = {'type': 'PanelLinkages_icon_linkage', 'index': index},
+                            ),
                             dmc.Switch(
                                 size='sm', radius='lg', checked=False,
                                 onLabel='ON', offLabel='OFF',
-                                id={'type': 'PanelLinkages_switch_apply', 'index': index}
+                                id={'type': 'PanelLinkages_switch_apply', 'index': index},
                             ),
                             dmc.ActionIcon(
                                 DashIconify(icon='gg:close-r'),
                                 id = {'type': 'PanelLinkages_button_delete', 'index': index},
-                                size='sm', variant='subtle', color='red'
+                                size='sm', variant='subtle', color='red',
+                                style = {'position': 'absolute', 'right': '5px'}
                             ),
                         ],
-                        justify='end',
+                        gap = 2,
+                        justify='start'
                     ),
                     withBorder=True
                 ),
@@ -36,10 +48,8 @@ class PanelLinkages:
                     label = 'Items to sync',
                     id = {'type': 'PanelLinkages_select_type', 'index': index},
                     data = [
-                        {'label': 'column', 'value': 'column'},
-                        {'label': 'view', 'value': 'view'},
-                        {'label': 'sample', 'value': 'sample'},
-                        {'label': 'embedding', 'value': 'embedding'}
+                        {'label': i, 'value': i}
+                        for i in PanelLinkages.linkage_types
                     ],
                 ),
                 dmc.MultiSelect(
@@ -51,7 +61,7 @@ class PanelLinkages:
         return linkage
 
     @staticmethod
-    def linkage_mark(color='blue'):
+    def linkage_mark(color='gray'):
         return dmc.ThemeIcon(
             children=DashIconify(icon="mdi:link-variant", width=16),
             size = 'sm', color=color, variant='transparent'

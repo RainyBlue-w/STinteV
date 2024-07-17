@@ -431,18 +431,18 @@ def update_linkage_panels_select_opitons_and_value(list_uuid, list_state_value):
 
 @dashapp.callback( # update linkage marks
     Output({'type': 'PlotPanel_linkage_marks', 'index': ALL}, 'children'),
+    Output({'type': 'PanelLinkages_icon_linkage', 'index': ALL}, 'color'),
+    Trigger('STORE_panelLinkages_linkagesCurUUID', 'data'), # triggered when add/delete linkage
     inputs={
         'all_inputs': {
             'list_types': Input({'type': 'PanelLinkages_select_type', 'index': ALL}, 'value'),
             'list_panels': Input({'type': 'PanelLinkages_select_linkage', 'index': ALL}, 'value'),
             'list_apply': Input({'type': 'PanelLinkages_switch_apply', 'index': ALL}, 'checked'),
-        },
-        'all_states': {
-            'list_plotPanels_curUUID': State('STORE_plotPanelsCurUUID-overview', 'data')
+            'list_plotPanels_curUUID': Input('STORE_plotPanelsCurUUID-overview', 'data'), # triggered when add/delete PlotPanel
         }
     },
 )
-def apply_linkage(all_inputs, all_states):
+def apply_linkage(all_inputs):
     
     '''ctx.args_grouping.all_inputs: 
     {
@@ -493,164 +493,149 @@ def apply_linkage(all_inputs, all_states):
     }
     '''
 
-    color_sequence = ['red', 'blue', 'green', 'orange', 'purple', 'cyan']
-    i = -1
     list_linkage_type = [item['value'] for item in ctx.args_grouping.all_inputs.list_types]
     list_selected_panels = [item['value'] for item in ctx.args_grouping.all_inputs.list_panels]
     list_linkage_apply = [item['value'] for item in ctx.args_grouping.all_inputs.list_apply]
-    panels_curUUID = all_states['list_plotPanels_curUUID']
-    marks = [[]] * len(panels_curUUID)
+    panels_curUUID = all_inputs['list_plotPanels_curUUID']
+    color_sequence = ['red', 'blue', 'green']
+    i = -1
+    marks = [[]] * len(panels_curUUID) # panels marks
+    colors = [] # linkage colors
     for type, panels, apply in zip(list_linkage_type, list_selected_panels, list_linkage_apply): # 对每条linkage
         # 颜色迭代器
         i += 1
         i = i % 3
         if apply and type: # 如果应用linkage
+            colors.append(color_sequence[i])
             for panel in panels: # 对于选中的每个panel（uid）
                 index = panels_curUUID.index(panel) # 找到uid对应的现有panel的位置
-                print(index)
                 marks[index] = marks[index] + [
                     PanelLinkages.linkage_mark(color=color_sequence[i])
                 ] # 不能改成marks[index].append(...)或者marks[index]+=...，否则从marks为[[],[], ...]时每次都会会给所有panels添加mark
-        else: # 不应用的话则跳过
-            continue
-    return marks
+        else: # 不应用的话则灰色，不添加marks
+            colors.append('gray')
+    return marks, colors
 
 #clientside
-@dashapp.callback( # update linked panels (sample)
-    Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
-    
-    Input({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
-    State('PanelLinkage_select_type', 'value'),
-    State('PanelLinkage_select_linkage', 'value'),
-    State('STORE_plotPanelsCurUUID-overview', 'data'),
+@dashapp.callback( # update linked panels
+    output = {
+        'samples': Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
+        'embeddings': Output({'type': 'PlotPanel_item_select_embedding', 'index': ALL}, 'value'),
+        'columns' : Output({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
+        'infos': Output({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
+        'graphs' : Output({'type': 'PlotPanel_item_graph', 'index': ALL}, 'figure'),
+    },
+    inputs = {
+        'samples' : Input({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
+        'embeddings': Input({'type': 'PlotPanel_item_select_embedding', 'index': ALL}, 'value'),
+        'columns' : Input({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
+        'infos': Input({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
+        'relayoutDatas' : Input({'type': 'PlotPanel_item_graph', 'index': ALL}, 'relayoutData'),
+        'linkages_type': Input({'type': 'PanelLinkages_select_type', 'index': ALL}, 'value'),
+        'linkages_panels': Input({'type': 'PanelLinkages_select_linkage', 'index': ALL}, 'value'),
+        'linkages_apply': Input({'type': 'PanelLinkages_switch_apply', 'index': ALL}, 'checked'),
+        'plotPanel_uuids': State('STORE_plotPanelsCurUUID-overview', 'data'),
+    }
 )
 def update_linked_panels_sample(
-    list_selected_sample: List, 
-    linkage_type: List[Literal[None, 'column','view', 'sample', 'embedding']], 
-    linkage_panels: List, 
-    list_cur_uuid: List
+    samples: List[str], embeddings: List[str], columns: List[str], infos: List[str],
+    relayoutDatas: List, 
+    linkages_type: List[PanelLinkages.LinkageTypes],
+    linkages_panels: List[str], # uuid
+    linkages_apply: List[bool],
+    plotPanel_uuids: List[str],
 ):
     
-    if linkage_type is [None] or linkage_type is None:
-        raise PreventUpdate
-
-    if 'sample' in linkage_type and len(linkage_panels) >= 2:
-        return_list = [no_update]*len(list_cur_uuid)
-        tid = ctx.triggered_id
-        sample_to_set = list_selected_sample[list_cur_uuid.index(tid['index'])]
-        for i,uid in enumerate(list_cur_uuid):
-            if uid in linkage_panels and uid != ctx.triggered_id['index']:
-                return_list[i] = sample_to_set
-        return return_list
-
-    raise PreventUpdate
-
-@dashapp.callback( # update linked panels (embeddings)
-    Output({'type': 'PlotPanel_item_select_embedding', 'index': ALL}, 'value'),
-
-    Input({'type': 'PlotPanel_item_select_embedding', 'index': ALL}, 'value'),
-    State('PanelLinkage_select_type', 'value'),
-    State('PanelLinkage_select_linkage', 'value'),
-    State('STORE_plotPanelsCurUUID-overview', 'data'),
-)
-def update_linked_panels_embedding(
-    list_selected_embedding: List, 
-    linkage_type: List[Literal[None, 'column','view', 'sample', 'embedding']], 
-    linkage_panels: List, 
-    list_cur_uuid: List
-):
+    return_dict = {}
     
-    if linkage_type is [None] or linkage_type is None:
-        raise PreventUpdate
-
-    if 'embedding' in linkage_type and len(linkage_panels) >= 2:
-        return_list = [no_update]*len(list_cur_uuid)
-        tid = ctx.triggered_id
-        embedding_to_set = list_selected_embedding[list_cur_uuid.index(tid['index'])]
-        for i,uid in enumerate(list_cur_uuid):
-            if uid in linkage_panels and uid != ctx.triggered_id['index']:
-                return_list[i] = embedding_to_set
-        return return_list
-
-    raise PreventUpdate
-
-@dashapp.callback( # update linked panels (column)
-    Output({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
-    Output({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
-    
-    Input({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
-    Input({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
-    State('PanelLinkage_select_type', 'value'),
-    State('PanelLinkage_select_linkage', 'value'),
-    State('STORE_plotPanelsCurUUID-overview', 'data'),
-    prevent_initial_call=True
-)
-def update_linked_panels_column(list_selected_column: List, list_selected_info: List, 
-                                linkage_type: List[Literal[None, 'column','view', 'sample', 'embedding']], linkage_panels: List, list_cur_uuid: List):
-    
-    '''
-    ctx.inputs_list: [
-        [
-            {'id': {'index': 'c639caf83dfe11ef997e3cecef387085', 'type': 'PlotPanel_item_select_column'}, 'property': 'value', 'value': 'leiden'}, 
-            {'id': {'index': 'c65229b83dfe11ef997e3cecef387085', 'type': 'PlotPanel_item_select_column'}, 'property': 'value', 'value': 'leiden'}
-        ]
-    ]
-    list_selected_column: ['leiden', 'leiden']
-    linkage_panels: ['c639caf83dfe11ef997e3cecef387085', 'c65229b83dfe11ef997e3cecef387085']
-    '''
-    
-    if linkage_type is [None] or linkage_type is None:
-        raise PreventUpdate
-
-    if 'column' in linkage_type and len(linkage_panels) >= 2:
-        return_list_column = [no_update]*len(list_cur_uuid)
-        return_list_info = [no_update]*len(list_cur_uuid)
-        tid = ctx.triggered_id
-        column_to_set = list_selected_column[list_cur_uuid.index(tid['index'])]
-        info_to_set = list_selected_info[list_cur_uuid.index(tid['index'])]
-        for i,uid in enumerate(list_cur_uuid):
-            if uid in linkage_panels and uid != ctx.triggered_id['index']:
-                return_list_column[i] = column_to_set
-                return_list_info[i] = info_to_set
-        return return_list_column, return_list_info
-    
-    raise PreventUpdate
-
-#clientside(set_props)
-@dashapp.callback( # update linked panels (view)
-    Output({'type': 'PlotPanel_item_graph', 'index': ALL}, 'figure'),
-    
-    Input({'type': 'PlotPanel_item_graph', 'index': ALL}, 'relayoutData'),
-    State('PanelLinkage_select_type', 'value'),
-    State('PanelLinkage_select_linkage', 'value'),
-    State('STORE_plotPanelsCurUUID-overview', 'data'),
-    prevent_initial_call=True
-)
-def update_linked_panels_view(
-    list_relayoutData, 
-    linkage_type: List[Literal[None, 'column','view', 'sample', 'embedding']], 
-    linkage_panels: List, list_cur_uuid: List
-):
-
-    if linkage_type is [None] or linkage_type is None:
-        raise PreventUpdate
-
-    if 'view' in linkage_type and len(linkage_panels) >= 2:
-        fig_updates = [no_update]*len(list_cur_uuid)
-        tid = ctx.triggered_id
-        view_to_set = list_relayoutData[list_cur_uuid.index(tid['index'])]
-        for i,uid in enumerate(list_cur_uuid):
-            if uid in linkage_panels and uid != ctx.triggered_id['index']:
-                patch = Patch()
-                if 'scene.camera' in view_to_set:
-                    patch['layout']['scene']['camera'] = view_to_set['scene.camera']
-                if 'scene.aspectratio' in view_to_set:
-                    patch['layout']['scene']['aspectmode'] = 'manual'
-                    patch['layout']['scene']['aspectratio'] = view_to_set['scene.aspectratio']
-                fig_updates[i] = patch
+    tid = ctx.triggered_id
+    if tid and 'type' in tid and tid['type'].startswith('PanelLinkages_'): 
+        # linkages热改动触发
+        raise PreventUpdate # 暂时
+    elif tid and 'type' in tid and tid['type'].startswith('PlotPanel_'): 
+        # PlotPanel select改动触发
+        
+        return_samples = [no_update]*len(plotPanel_uuids)
+        return_embeddings = [no_update]*len(plotPanel_uuids)
+        return_columns = [no_update]*len(plotPanel_uuids)
+        return_infos = [no_update]*len(plotPanel_uuids)
+        return_graphs = [no_update]*len(plotPanel_uuids)
+        
+        panel_order = plotPanel_uuids.index(tid['index']) # 触发panel在队列中的位置
+        
+            
+        if tid['type'] == 'PlotPanel_item_select_sample':
+            for type, panels, apply in zip(linkages_type, linkages_panels, linkages_apply): # 对每条linkage
+                if (apply is False) or (type is [None]) or (type is None): # 如果没有apply或者type没有选，跳过该条linkage
+                    continue
+                if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
+                    continue
                 
-        return fig_updates
+                if 'sample' in type and len(panels) >= 2: # 如果选项中有sample，且linkage选中的panel超过两个
+                    sample_to_set = samples[panel_order]
+                    for i,uid in enumerate(plotPanel_uuids):
+                        if uid in panels and uid != tid['index']:
+                            return_samples[i] = sample_to_set
+            
+        if tid['type'] == 'PlotPanel_item_select_embedding':  
+            for type, panels, apply in zip(linkages_type, linkages_panels, linkages_apply): # 对每条linkage
+                if (apply is False) or (type is [None]) or (type is None): # 如果没有apply或者type没有选，跳过该条linkage
+                    continue
+                if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
+                    continue
                 
+                if 'embedding' in type and len(panels) >= 2: # embedding
+                    embedding_to_set = embeddings[panel_order]
+                    for i,uid in enumerate(plotPanel_uuids):
+                        if uid in panels and uid != tid['index']:
+                            return_embeddings[i] = embedding_to_set
+                            
+        if tid['type'] in ['PlotPanel_item_select_column','PlotPanel_item_select_info']:       
+            for type, panels, apply in zip(linkages_type, linkages_panels, linkages_apply): # 对每条linkage
+                if (apply is False) or (type is [None]) or (type is None): # 如果没有apply或者type没有选，跳过该条linkage
+                    continue
+                if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
+                    continue
+                    
+                if 'column' in type and len(panels) >= 2: # column
+                    column_to_set = columns[panel_order]
+                    info_to_set = infos[panel_order]
+                    for i,uid in enumerate(plotPanel_uuids):
+                        if uid in panels and uid != tid['index']:
+                            return_columns[i] = column_to_set
+                            return_infos[i] = info_to_set
+                       
+        if tid['type'] == 'PlotPanel_item_graph': 
+            for type, panels, apply in zip(linkages_type, linkages_panels, linkages_apply): # 对每条linkage
+                if (apply is False) or (type is [None]) or (type is None): # 如果没有apply或者type没有选，跳过该条linkage
+                    continue
+                if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
+                    continue
+                if 'view' in type and len(panels) >= 2: # view
+                    
+                    view_to_set = relayoutDatas[panel_order]
+                    
+                    for i,uid in enumerate(plotPanel_uuids):
+                        if uid in panels and uid != tid['index']:
+                            patch = Patch()
+                            if 'scene.camera' in view_to_set:
+                                patch['layout']['scene']['camera'] = view_to_set['scene.camera']
+                            if 'scene.aspectratio' in view_to_set:
+                                patch['layout']['scene']['aspectmode'] = 'manual'
+                                patch['layout']['scene']['aspectratio'] = view_to_set['scene.aspectratio']
+                            return_graphs[i] = patch
+
+            
+        return_dict = {
+            'samples': return_samples,
+            'embeddings': return_embeddings,
+            'columns': return_columns,
+            'infos': return_infos,
+            'graphs': return_graphs
+        }
+        
+        return return_dict
+    
     raise PreventUpdate
 
 #endregion
