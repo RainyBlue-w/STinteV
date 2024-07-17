@@ -29,6 +29,7 @@ class ParamsPlotMetadataEmbedding(BaseModel):
 
 def plot_feature_embedding(
     adata: anndata.AnnData,
+    preserved_cells: List,
     feature: str,
     embedding: str,
     sort: bool = True,
@@ -43,9 +44,11 @@ def plot_feature_embedding(
 ) -> go.Figure :
     
     if adata.obsm[embedding].shape[1] == 2:
-        plot = _plot_feature_embedding_2d(adata, feature, embedding, sort, ascending, cmap, marker_size, **kws)
+        plot = _plot_feature_embedding_2d(adata, preserved_cells, feature, embedding, 
+                                          sort, ascending, cmap, marker_size, **kws)
     elif adata.obsm[embedding].shape[1] == 3:
-        plot = _plot_feature_embedding_3d(adata, feature, embedding, sort, ascending, cmap, marker_size, **kws)
+        plot = _plot_feature_embedding_3d(adata, preserved_cells, feature, embedding, 
+                                          sort, ascending, cmap, marker_size, **kws)
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
     
@@ -53,6 +56,7 @@ def plot_feature_embedding(
 
 def plot_metadata_embedding(
     adata: anndata.AnnData,
+    preserved_cells: List,
     column: str,
     embedding: str,
     cmap: Dict = None,
@@ -62,9 +66,11 @@ def plot_metadata_embedding(
 ) -> go.Figure:
     
     if adata.obsm[embedding].shape[1] == 2:
-        plot = _plot_metadata_embedding_2d(adata, column, embedding, cmap, marker_size, color_discrete_sequence=color_discrete_sequence, **kws)
+        plot = _plot_metadata_embedding_2d(adata, preserved_cells, column, embedding, 
+                                           cmap, marker_size, color_discrete_sequence=color_discrete_sequence, **kws)
     elif adata.obsm[embedding].shape[1] == 3:
-        plot = _plot_metadata_embedding_3d(adata, column, embedding, cmap, marker_size, color_discrete_sequence=color_discrete_sequence, **kws)
+        plot = _plot_metadata_embedding_3d(adata, preserved_cells, column, embedding, 
+                                           cmap, marker_size, color_discrete_sequence=color_discrete_sequence, **kws)
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
     
@@ -72,6 +78,7 @@ def plot_metadata_embedding(
 
 def _plot_feature_embedding_2d(
     adata: anndata.AnnData,
+    preserved_cells: List,
     feature: str,
     embedding: str,
     sort: bool = True,
@@ -89,8 +96,13 @@ def _plot_feature_embedding_2d(
     plot feature on 2D-embedding
     """
 
-    embedding = pd.DataFrame(adata.obsm[embedding], index=adata.obs_names, columns=['X','Y'])
-    pdf = pd.concat([embedding, adata[:,feature].to_df()], axis=1)
+    pdf = pd.DataFrame(adata.obsm[embedding], index=adata.obs_names, columns=['X','Y'])
+    coord_range = {
+        'X': [pdf['X'].min(), pdf['X'].max()],
+        'Y': [pdf['Y'].min(), pdf['Y'].max()]
+    }
+    pdf = pdf.loc[preserved_cells,:]
+    pdf = pd.concat([pdf, adata[preserved_cells, feature].to_df()], axis=1)
     if sort is True:
         pdf = pdf.sort_values(by=feature, ascending=ascending)
     plot = px.scatter(
@@ -99,7 +111,8 @@ def _plot_feature_embedding_2d(
         color_continuous_scale = cmap, render_mode='webgl',
         **kws
     )
-    plot.update_yaxes(visible=False).update_xaxes(visible=False)
+    plot.update_xaxes(visible=False, range=coord_range['X'])
+    plot.update_yaxes(visible=False, range=coord_range['Y'])
     plot.update_traces(marker_size=marker_size, marker_opacity=1)
     plot.update_layout(
         margin=dict(l=0, t=0, b=0, r=0),
@@ -121,6 +134,7 @@ def _plot_feature_embedding_2d(
 
 def _plot_feature_embedding_3d(
     adata: anndata.AnnData,
+    preserved_cells: List,
     feature: str,
     embedding: str,
     sort: bool = True,
@@ -138,7 +152,13 @@ def _plot_feature_embedding_3d(
     plot feature on 3D-embedding
     """
     pdf = pd.DataFrame(adata.obsm[embedding], index=adata.obs_names, columns=['X','Y','Z'])
-    pdf = pd.concat([pdf, adata[:,feature].to_df()], axis=1)
+    coord_range = {
+        'X': [pdf['X'].min(), pdf['X'].max()],
+        'Y': [pdf['Y'].min(), pdf['Y'].max()],
+        'Z': [pdf['Z'].min(), pdf['Z'].max()]
+    }
+    pdf = pdf.loc[preserved_cells,:]
+    pdf = pd.concat([pdf, adata[preserved_cells, feature].to_df()], axis=1)
     if sort is True:
       pdf = pdf.sort_values(by=feature, ascending=ascending)
     plot = px.scatter_3d(
@@ -157,12 +177,12 @@ def _plot_feature_embedding_3d(
         'colorbar' : {'tickformat': '4.2f'}
       },
       scene = dict(
-          xaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
-                       gridcolor='gray', nticks=6),
-          yaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
-                       gridcolor='gray', nticks=6),
-          zaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray', autorange=True,
-                       gridcolor='gray', nticks=6),
+          xaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
+                       gridcolor='gray', nticks=6, range=coord_range['X']),
+          yaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
+                       gridcolor='gray', nticks=6, range=coord_range['Y']),
+          zaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
+                       gridcolor='gray', nticks=6, range=coord_range['Z']),
           bgcolor = 'white',
           camera = dict(projection = dict(type='orthographic') ),
           aspectmode = 'data'
@@ -174,6 +194,7 @@ def _plot_feature_embedding_3d(
 
 def _plot_metadata_embedding_2d(
     adata: anndata.AnnData,
+    preserved_cells: List,
     column: str,
     embedding: str,
     cmap: Dict | None = None,
@@ -182,7 +203,12 @@ def _plot_metadata_embedding_2d(
 ) -> go.Figure:
     
     pdf = pd.DataFrame(adata.obsm[embedding], index=adata.obs_names, columns=['X', 'Y'])
-    pdf = pd.concat([ pdf, adata.obs[column] ], axis=1)
+    coord_range = {
+        'X': [pdf['X'].min(), pdf['X'].max()],
+        'Y': [pdf['Y'].min(), pdf['Y'].max()]
+    }
+    pdf = pdf.loc[preserved_cells,:]
+    pdf = pd.concat([ pdf, adata.obs.loc[preserved_cells, column] ], axis=1)
     pdf = pdf.sort_values(by=column)
     plot = px.scatter(
         data_frame = pdf,
@@ -190,8 +216,8 @@ def _plot_metadata_embedding_2d(
         color_discrete_map = cmap,
         **kws
     )
-    plot.update_xaxes(visible=False, range=[pdf['X'].min(), pdf['X'].max()])
-    plot.update_yaxes(visible=False, range=[pdf['Y'].min(), pdf['Y'].max()])
+    plot.update_xaxes(visible=False, range=coord_range['X'])
+    plot.update_yaxes(visible=False, range=coord_range['Y'])
     plot.update_traces(marker_size=marker_size, marker_opacity=1)
     plot.update_layout(
         margin=dict(l=0, r=0, t=0, b=0),
@@ -209,6 +235,7 @@ def _plot_metadata_embedding_2d(
 
 def _plot_metadata_embedding_3d(
     adata: anndata.AnnData,
+    preserved_cells: List,
     column: str,
     embedding: str,
     cmap: Dict | None = None,
@@ -217,7 +244,13 @@ def _plot_metadata_embedding_3d(
 ) -> go.Figure:
     
     pdf = pd.DataFrame(adata.obsm[embedding], index=adata.obs_names, columns=['X', 'Y', 'Z'])
-    pdf = pd.concat([ pdf, adata.obs[column] ], axis=1)
+    coord_range = {
+        'X': [pdf['X'].min(), pdf['X'].max()],
+        'Y': [pdf['Y'].min(), pdf['Y'].max()],
+        'Z': [pdf['Z'].min(), pdf['Z'].max()]
+    }
+    pdf = pdf.loc[preserved_cells,:]
+    pdf = pd.concat([ pdf, adata.obs.loc[preserved_cells, column] ], axis=1)
     pdf = pdf.sort_values(by=column)
     plot = px.scatter_3d(
         data_frame = pdf,
@@ -236,11 +269,11 @@ def _plot_metadata_embedding_3d(
       },
       scene = dict(
           xaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
-                       gridcolor='gray', nticks=6, range=[pdf['X'].min(), pdf['X'].max()],),
+                       gridcolor='gray', nticks=6, range=coord_range['X']),
           yaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
-                       gridcolor='gray', nticks=6, range=[pdf['Y'].min(), pdf['Y'].max()],),
+                       gridcolor='gray', nticks=6, range=coord_range['Y']),
           zaxis = dict(backgroundcolor='white', showbackground=True, zerolinecolor='gray',
-                       gridcolor='gray', nticks=6, range=[pdf['Z'].min(), pdf['Z'].max()],),
+                       gridcolor='gray', nticks=6, range=coord_range['Z']),
           bgcolor = 'white',
           camera = dict(projection = dict(type='orthographic') ),
           aspectmode = 'cube'

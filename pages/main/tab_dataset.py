@@ -80,8 +80,9 @@ class TabDataset:
                 )
             ]
         )
-        
-    def _tabs_tab(self, value, title, tips):
+    
+    @staticmethod
+    def _tabs_tab(value, title, tips):
         
         content = dmc.TabsTab(
             value=value,

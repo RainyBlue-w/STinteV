@@ -80,6 +80,7 @@ def _navbar_item_user(user_id: str = None):
 )
 def router(pathname):
     
+    # / /login /jdfl
     # 过滤非法pathname
     if pathname not in RouterConfig.VALID_PATHNAME:
         return (

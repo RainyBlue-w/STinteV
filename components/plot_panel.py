@@ -1,5 +1,7 @@
-from dash_extensions.enrich import Output, Input, html, callback, clientside_callback, ClientsideFunction
-from dash import dcc, ALL, MATCH, Patch
+import uuid
+from dash_extensions.enrich import Output, Input, State, html, callback, clientside_callback, ClientsideFunction
+from dash import dcc, ALL, MATCH, Patch, no_update, ctx
+from dash.exceptions import PreventUpdate
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 import feffery_utils_components as fuc
@@ -8,6 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from typing import Dict, Tuple, List
+import uuid
 
 from stintev.utils._io import *
 from stintev.utils._plot import *
@@ -51,17 +54,18 @@ class PlotPanel:
         self._display_idx = dmc.Group(
             gap=3,
             children = [
-                dmc.Badge(
-                    # children=f'Panel {display_idx}' if display_idx is not None else 'Panel',
-                    id={'type': 'PlotPanel_badge_panel_idx', 'index': self._index},
-                    variant='light', color='gray'
-                ),
-                dmc.Group(
+                dmc.Group( # linkage marks
                     children = [],
                     id={'type': 'PlotPanel_linkage_marks', 'index': self._index},
-                    gap=0
-                )
-            ]
+                    gap=0,
+                    style = {'position': 'absolute', 'left': '5px', 'top': '5px'}
+                ),
+                dmc.Badge( # panel idx badge
+                    id={'type': 'PlotPanel_badge_panel_idx', 'index': self._index},
+                    variant='light', color='gray',
+                    style = {'position': 'absolute', 'right': '25px', 'top': '5px'}
+                ),
+            ],
         )
 
         self._data_button = fac.Popover(
@@ -229,56 +233,4 @@ class PlotPanel:
                     ]
                 )
             ]
-        )
-
-class PanelLinkage:
-
-    @staticmethod
-    def new_linkage():
-        linkage = dmc.Group(
-            gap=3,
-            children=[
-                dmc.Stack(
-                    gap=0,
-                    children=[
-                        dmc.Text('Type', className='dmc-Text-select-label-sider'),
-                        fac.Select(
-                            placeholder='Type',
-                            locale = 'en-us',
-                            allowClear=False,
-                            id = 'PanelLinkage_select_type',
-                            style={'width': 'calc(15vw - 30px)'},
-                            options = [
-                                {'label': 'column', 'value': 'column'},
-                                {'label': 'view', 'value': 'view'},
-                            ],
-                            mode = 'multiple'
-                        ),
-                    ]
-                ),
-                dmc.Stack(
-                    gap=0,
-                    children=[
-                        dmc.Text('Linkage', className='dmc-Text-select-label-sider'),
-                        fac.Select(
-                            placeholder='Choose Panels',
-                            locale = 'en-us',
-                            allowClear=False,
-                            id = 'PanelLinkage_select_linkage',
-                            options=[],
-                            mode='multiple',
-                            style={'width': 'calc(15vw - 30px)'},
-                        ),
-                        
-                    ]
-                )
-            ]
-        )
-        return linkage
-    
-    @staticmethod
-    def linkage_mark(color='blue'):
-        return dmc.ThemeIcon(
-            children=DashIconify(icon='fluent:link-square-24-filled', width=16),
-            size = 'sm', color=color, variant='transparent'
         )

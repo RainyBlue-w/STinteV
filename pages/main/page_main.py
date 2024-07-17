@@ -19,7 +19,8 @@ def render_content(
             _tab_dataset.tab,
             _tab_overview.tab
         ],
-        active_tab = 'TAB-dataset',
+        # active_tab = 'TAB-dataset',
+        active_tab = 'TAB-overview',
         id = '_tabs-2d',
     )
     layout = html.Div(
