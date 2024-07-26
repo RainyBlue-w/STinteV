@@ -7,6 +7,66 @@ from scipy.io import mmread
 import anndata
 from scipy import sparse
 
+# 用于存储不同用户当前需要处理的rds文件路径
+user_rds_path: dict[str, str] = {}
+
+def delete_relate_tmpFiles(
+        file_path: str
+):
+    file_path_tmp = file_path+"_tmp/"
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except OSError as e:
+            print(f"Error: {e}")
+
+    if os.path.exists(file_path_tmp):
+        try:
+            shutil.rmtree(file_path_tmp)
+        except OSError as e:
+            print(f"Error: {e}")
+
+def convert_to_h5ad(
+        file_path: str,
+        metadata: list
+):
+    output_file_path = os.path.splitext(file_path)[0] + ".h5ad"
+    file_path_tmp = file_path+"_tmp/"
+    reduction_path = file_path_tmp+"reduction/"
+    counts_path = file_path_tmp+"counts.mtx"
+    gene_path = file_path_tmp+"gene.csv"
+    meta_path = file_path_tmp+"meta.csv"
+    meta = pd.read_csv(meta_path)
+    gene = pd.read_csv(gene_path)
+    reductions = {}
+    for file in os.listdir(reduction_path):
+        key = file.split(".")[0]
+        reductions[key] = pd.read_csv(reduction_path+file)
+        reductions[key].set_index(reductions[key].columns[0], inplace=True)
+    counts = mmread(counts_path)
+    meta.set_index(meta.columns[0], inplace=True)
+    meta = meta[metadata]
+    gene.set_index(gene.columns[0], inplace=True)
+    adata = anndata.AnnData(X=counts.transpose(), obs=meta, var=gene)
+    for key in reductions:
+        adata.obsm[key] = reductions[key].values
+    if sparse.isspmatrix_coo(adata.X):
+        adata.X = adata.X.tocsr()
+    if '_index' in adata.var.columns:
+        adata.var.rename(columns={'_index': 'index'}, inplace=True)
+    adata.write_h5ad(output_file_path, compression='gzip')
+
+def parse_rds(
+        file_path: str
+) -> tuple:
+    file_path_tmp = file_path+"_tmp/"
+    meta_path = file_path_tmp+"meta.csv"
+    success, message = run_r_script(file_path)
+    if success:
+        meta = pd.read_csv(meta_path)
+        meta.set_index(meta.columns[0], inplace=True)
+        return (True, meta.columns)
+    return (False, message)
 
 def rds_to_h5ad(
         file_path: str
@@ -52,7 +112,7 @@ def rds_to_h5ad(
 
 def run_r_script(
         file: str
-):
+) -> tuple:
     try:
         result = subprocess.run(
             ["Rscript", "stintev/utils/_io/parseRDS.r", file],
@@ -60,7 +120,7 @@ def run_r_script(
             capture_output=True,
             text=True
         )
-        return True
+        return (True, '')
     except subprocess.CalledProcessError as e:
-        print(f"\033[91mError: {e.stderr}\033[0m", file=sys.stderr)
-        return False
+        # print(f"\033[91mError: {e.stderr}\033[0m", file=sys.stderr)
+        return (False, e.stderr)

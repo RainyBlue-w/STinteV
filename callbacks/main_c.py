@@ -4,6 +4,7 @@ from dash import clientside_callback, ClientsideFunction, ALL, MATCH, Patch, ctx
 from dash.exceptions import PreventUpdate
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
+import dash
 
 import anndata
 import os
@@ -15,7 +16,7 @@ from stintev.config import PathConfig
 from stintev.utils._plot import plot_feature_embedding, plot_metadata_embedding
 from stintev.components import PlotPanel, DatasetList, PanelLinkage, DataFilter
 from stintev.server import dashapp
-from stintev.utils._io import rds_to_h5ad
+from stintev.utils._io import user_rds_path, parse_rds, convert_to_h5ad, delete_relate_tmpFiles
 
 #region update overview-grid layout
 
@@ -155,18 +156,30 @@ def create_refresh_datasetlist_private(dataset_name):
             DatasetList.alert()
         )
     else:
-        raise PreventUpdate
+        raise PreventUpdate    
+
+# 关闭转换窗口后清理临时文件
+@dashapp.callback(
+    Input('DIALOG_convert_rds', 'opened'),
+    prevent_initial_call=True
+) 
+def clear_tmp_files(opened):
+    if not opened:
+        delete_relate_tmpFiles(user_rds_path[current_user.username])
     
-@dashapp.callback( # 文件上传后刷新private datasetlit
+# 监控step3状态变化，激活时开始转换
+@dashapp.callback(
     Output('TABS_panel_private-dataset', 'children'),
-    Input('UPLOAD_dataset-dataset', 'lastUploadTaskRecord'),
-)
-def upload_refresh_datasetlist_private(upload):
-    if upload:
+    Output('STEPPER_convert_rds', 'active'),
+    Output('STEP_convert_rds', 'loading'),
+    Input('STEP_convert_rds', 'loading'),
+    State('CHECKBOX_checked_metadata', 'value'),
+    prevent_initial_call=True
+) 
+def start_convert_rds_to_h5ad(loading, value):
+    if loading:
         path_folder = os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.username)
-        if upload['fileName'].endswith(".rds"):
-            rds_file_path = os.path.join(path_folder, upload['taskId'], upload['fileName'])
-            rds_to_h5ad(rds_file_path)
+        convert_to_h5ad(user_rds_path[current_user.username], value)
         return [
             html.Div(
                 id = f'TabsTabDataSet-contetn-private',
@@ -177,7 +190,76 @@ def upload_refresh_datasetlist_private(upload):
                     ).list,
                 ]
             )
-        ]
+        ], 3, False
+    else:
+        raise PreventUpdate
+
+# 提交元数据后跳转转换状态
+@dashapp.callback(
+    Output('STEPPER_convert_rds', 'active'),
+    Output('STEP_convert_rds', 'loading'),
+    Input('BUTTON_submit_metadata', 'n_clicks'),
+    prevent_initial_call=True
+)
+def skip_to_rds_convert(n_clicks):
+    if n_clicks is None:
+        raise PreventUpdate
+    else:
+        return 2, True
+
+# 监控stepper变化，启动rds文件解析工作
+@dashapp.callback(
+    Output('STEPPER_convert_rds', 'active'),
+    Output('STEP_parse_rds', 'loading'),
+    Output('STEP_parse_rds', 'color'),
+    Output('STEP_parse_rds_result', 'children'),
+    Output('CHECKBOX_checked_metadata', 'children'),
+    Input('STEP_parse_rds', 'loading'),
+    prevent_initial_call=True
+)
+def parse_rds_file(loading):
+    if loading:
+        success, metadata = parse_rds(user_rds_path[current_user.username])
+        if success:
+            children=dmc.Group(
+                [
+                    dmc.Checkbox(label=meta, value=meta) for meta in metadata
+                ],
+                mt=10,
+            ),
+            return 1, False, dash.no_update, dash.no_update, children
+        return 0, False, 'red', metadata, dash.no_update
+    else:
+        raise PreventUpdate
+
+# 根据上传文件类型决定是否弹出文件类型转换对话框 
+@dashapp.callback( # 文件上传后刷新private datasetlit
+    Output('TABS_panel_private-dataset', 'children'),
+    Output('DIALOG_convert_rds', 'opened'),
+    Output('STEP_parse_rds', 'loading'),
+    Output('STEP_parse_rds', 'color'),
+    Output('STEP_parse_rds_result', 'children'),
+    Output('STEPPER_convert_rds', 'activate'),
+    Input('UPLOAD_dataset-dataset', 'lastUploadTaskRecord'),
+)
+def upload_refresh_datasetlist_private(upload):
+    if upload:
+        path_folder = os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.username)
+        if upload['fileName'].endswith(".rds"):
+            rds_file_path = os.path.join(path_folder, upload['taskId'], upload['fileName'])
+            user_rds_path[current_user.username] = rds_file_path
+            return dash.no_update, True, True, 'blue', '', 0
+        return [
+            html.Div(
+                id = f'TabsTabDataSet-contetn-private',
+                children=[
+                    DatasetList(
+                        path_data_folder=path_folder,
+                        group='private'
+                    ).list,
+                ]
+            )
+        ], False, False, dash.no_update, dash.no_update, 0
     else:
         raise PreventUpdate
 
