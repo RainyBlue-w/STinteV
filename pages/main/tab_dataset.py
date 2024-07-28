@@ -27,7 +27,7 @@ class TabDataset:
                 dmc.Tabs(
                     id='TABS_group-dataset',
                     orientation='vertical',
-                    className='dmc-Tabs-dataset',
+                    className='dmc-Tabs-data set',
                     value='public',
                     children=[
                         dmc.TabsList(

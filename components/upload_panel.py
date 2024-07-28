@@ -93,10 +93,10 @@ class UploadPanel:
                     locale='en-us',
                     apiUrl='/upload/',
                     fileMaxSize=3072,
-                    multiple=True,
+                    multiple=False,
                     directory=False,
-                    fileTypes = ['h5ad'],
-                    text='Upload the .h5ad files',
+                    fileTypes = ['h5ad', 'rds'],
+                    text='Upload .h5ad or .rds files',
                     hint='Click or drag the files to this area to upload',
                 ),
                 dmc.Button(
@@ -157,11 +157,100 @@ class UploadPanel:
             ]
         )
 
+        self.convert_dialog = html.Div(
+            [
+                dmc.Modal(
+                    closeOnClickOutside = False,
+                    size = "60%",
+                    title="RDS to H5AD Conversion",
+                    id="DIALOG_convert_rds",
+                    centered=True,
+                    zIndex=10000,
+                    children=[
+                        dmc.Stepper(
+                            id="STEPPER_convert_rds",
+                            active=0,
+                            children=[
+                                dmc.StepperStep(
+                                    id="STEP_parse_rds",
+                                    loading=False,
+                                    label="Parse RDS",
+                                    description="Identify file content",
+                                    children=[
+                                        dmc.Stack(
+                                            gap=10,
+                                            align="center",
+                                            children=[
+                                                dmc.Text("", c="red", id='STEP_parse_rds_result'),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl")
+                                            ],
+                                        )
+                                    ]
+                                ),
+                                dmc.StepperStep(
+                                    label="Select Metadata",
+                                    description="Filter metadata of interest",
+                                    children=[
+                                        dmc.Stack(
+                                            gap=10,
+                                            align="center",
+                                            children=[
+                                                # dmc.Text("Selecting the metadata you are interested in.", c="#006400"),
+                                                dmc.CheckboxGroup(
+                                                    id="CHECKBOX_checked_metadata",
+                                                    withAsterisk=True,
+                                                    mb=10,
+                                                    children=[],
+                                                    value=[],
+                                                ),
+                                                dmc.Button(
+                                                    "Submit",
+                                                    id="BUTTON_submit_metadata",        
+                                                    rightSection=DashIconify(icon="formkit:submit"),
+                                                ),
+                                            ]
+                                        )
+                                    ]
+                                ),
+                                dmc.StepperStep(
+                                    id="STEP_convert_rds",
+                                    loading=False,
+                                    label="Convert to H5AD",
+                                    description="Generate h5ad file",
+                                    children=[
+                                        dmc.Stack(
+                                            gap=10,
+                                            align="center",
+                                            children=[
+                                                # dmc.Text("Step 3: Converting, please wait......", c="#006400"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl"),
+                                                dmc.Skeleton(h=8, radius="xl")
+                                            ],
+                                        )
+                                    ]
+                                ),
+                            ],
+                        ),
+                    ],
+                )
+            ]
+        )
+
         self.panel = dmc.Group(
             className = 'dmc-Group-upload-dataset',
             children=[
                 dcc.Store(id='STORE_dataset_name_upload-dataset'),
                 dcc.Store(id='STORE_dataset_description_upload-dataset'),
+                self.convert_dialog,
                 self.timeline,
                 dmc.Card(
                     withBorder=True,

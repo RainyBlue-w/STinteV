@@ -200,14 +200,11 @@ clientside_callback( # 展开数据集文件列表
     prevent_initial_call=True
 )
 def delete_private_dataset(list_clicks, curIndexes):
-    
-    if all(list_clicks): # 有确认删除
-    
+    if any(list_clicks): # 有确认删除
         tid = ctx.triggered_id
         '''
         tid: {'index': 'private-test', 'type': 'DatasetList-close-button'}
         '''
-        
         children_Grid = Patch()
         children_curIndexes = Patch()
         for i, index in enumerate(curIndexes):
