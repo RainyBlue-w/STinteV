@@ -37,7 +37,7 @@ class TabOverview():
     
     # data
     dataset = None
-
+    
     # Tab init
     def __init__(self, path_data_folder: str) -> None:
 
@@ -128,7 +128,7 @@ class TabOverview():
             ],
             value='control_plot_panels'
         )
-        
+
         # accordion item in sider (Linkage)
         self.control_linkage = dmc.AccordionItem(
             children=[
@@ -141,7 +141,7 @@ class TabOverview():
             ],
             value = 'control_linkage'
         )
-        
+
         # sider in left
         self.sider = fac.Sider(
             collapsible = False,
@@ -214,7 +214,7 @@ class TabOverview():
                 ),
             ]    
         )
-        
+
 clientside_callback(
     ClientsideFunction(
         namespace='overview',
