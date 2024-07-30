@@ -349,9 +349,9 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
         {
             'group': 'spatial',
             'items': [
-                {'label': 'E7.5.h5ad', 'value': '/rad/share/omics-viewer/stintev/datasets/public/spatial/E7.5.h5ad'}, 
-                {'label': E7.75.h5ad', 'value': '/rad/share/omics-viewer/stintev/datasets/public/spatial/E7.75.h5ad'},
-                {'label': E8.0.h5ad', 'value': '/rad/share/omics-viewer/stintev/datasets/public/spatial/E8.0.h5ad'},
+                {'label': 'E7.5.h5ad', 'value': '/data1/share/omics-viewer/stintev/datasets/public/spatial/E7.5.h5ad'}, 
+                {'label': E7.75.h5ad', 'value': '/data1/share/omics-viewer/stintev/datasets/public/spatial/E7.75.h5ad'},
+                {'label': E8.0.h5ad', 'value': '/data1/share/omics-viewer/stintev/datasets/public/spatial/E8.0.h5ad'},
             ]
         },
         {...}

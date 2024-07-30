@@ -287,7 +287,7 @@ if __name__ == '__main__':
     
     from sys import getsizeof
     
-    adata = anndata.read_h5ad('/rad/share/omics-viewer/spatial/matrix_data/embryo_3-2-E8.0_min400_Ann_HC0.5.h5ad', backed='r')
+    adata = anndata.read_h5ad('/data1/share/omics-viewer/spatial/matrix_data/embryo_3-2-E8.0_min400_Ann_HC0.5.h5ad', backed='r')
     
     _plot_feature_embedding_2d(adata, feature='T', embedding='X_sagittal')
 
