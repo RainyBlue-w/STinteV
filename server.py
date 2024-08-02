@@ -4,11 +4,13 @@ from dash_extensions.enrich import DashProxy, LogTransform, ServersideOutputTran
 
 from flask_login import LoginManager, current_user
 from flask import request
+from flask_mail import Mail
+from flask_bcrypt import Bcrypt
 
 import os
 
 from stintev.models.auth import User, UserAccount
-from stintev.config import PathConfig
+from stintev.config import PathConfig, SecretConfig
 
 dash._dash_renderer._set_react_version('18.2.0') # needed for dash_mantine_components v0.14
 
@@ -36,8 +38,20 @@ dashapp = DashProxy(
   requests_pathname_prefix='/',
 )
 
+# config
+
 dashapp.config.suppress_callback_exceptions = True
-dashapp.server.secret_key = '4e17572a360111efaa763cecef387085'
+dashapp.server.secret_key = SecretConfig.SECRET_KEY
+dashapp.server.config['SECRET_KEY'] = SecretConfig.SECRET_KEY
+dashapp.server.config['MAIL_SERVER'] = 'smtp.163.com'
+dashapp.server.config['MAIL_PORT'] = 465
+dashapp.server.config['MAIL_USE_TLS'] = True
+dashapp.server.config['MAIL_USE_SSL'] = True
+dashapp.server.config['MAIL_USERNAME'] = 'stintev@163.com'
+dashapp.server.config['MAIL_PASSWORD'] = 'wchh22@@stintev'
+
+# flask-mail
+mail = Mail(dashapp.server)
 
 # login
 
@@ -47,11 +61,10 @@ login_manager.init_app(dashapp.server)
 
 # 创建回调函数，作用是供login_manager通过username信息获取对应的User对象
 @login_manager.user_loader
-def load_user(username):
-    if UserAccount.query_user(username):
+def load_user(user_id):
+    if UserAccount.query_user(user_id):
         curr_user = User()
-        curr_user.id = username
-        curr_user.username = username
+        curr_user.id = user_id
         return curr_user
 
 

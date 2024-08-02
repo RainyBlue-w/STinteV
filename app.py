@@ -53,7 +53,7 @@ def _navbar_item_user(user_id: str = None):
             children=[
                 dmc.MenuTarget(
                     dmc.Button(
-                        current_user.username,
+                        current_user.id,
                         color='gray',
                         variant = 'subtle',
                         leftSection=DashIconify(icon='fluent:person-24-regular', width=24),
