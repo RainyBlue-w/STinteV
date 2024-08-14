@@ -146,6 +146,7 @@ class TabOverview():
         self.sider = fac.Sider(
             collapsible = False,
             width = self._width_sider,
+            theme = 'light',
             children = fac.Affix(
                 html.Div([
                     dmc.Badge(

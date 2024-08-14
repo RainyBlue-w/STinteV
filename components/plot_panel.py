@@ -23,7 +23,7 @@ class PlotPanel:
     '''
 
     # const
-    _index: str = None
+    _index: str | None = None
     _width_drawer_card: int = 220
     _height_plot_panel_item: int = 300
 
@@ -37,7 +37,7 @@ class PlotPanel:
     def __init__(
         self, 
         index: str, 
-        init_samples: List = None,
+        init_samples: List | None = None,
     ) -> None:
         '''
         index: str

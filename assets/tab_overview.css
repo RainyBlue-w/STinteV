@@ -1,12 +1,9 @@
 .fac-Layout {
     height: 94vh;
-    background-color: #FFFFFF;
-    border: 0px solid #FFFFFF;
 }
 
 .fac-Sider {
-    background-color: #FFFFFF;
-    /* border: 1px solid #dee2e6; */
+    border: 1px solid #dee2e6;
     overflow-y: scroll;
 }
 
@@ -18,7 +15,7 @@
 }
 
 .fac-Content {
-    background-color: #FFFFFF;
+    /* background-color: #FFFFFF; */
     width: calc(85vw - 10px);
 }
 

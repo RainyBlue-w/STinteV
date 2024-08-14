@@ -128,7 +128,7 @@ def generate_datasetlist_private(url):
     if url == '/':
         return (
             DatasetList(
-                path_data_folder=os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.username),
+                path_data_folder=os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.id),
                 group='private'
             ).list
             if current_user.is_authenticated else 
@@ -147,7 +147,7 @@ def create_refresh_datasetlist_private(dataset_name):
     if dataset_name:
         return (
             DatasetList(
-                path_data_folder=os.path.join(PathConfig.DATA_PATH, 'datasets','private', current_user.username),
+                path_data_folder=os.path.join(PathConfig.DATA_PATH, 'datasets','private', current_user.id),
                 group='private'
             ).list
             if current_user.is_authenticated else 
@@ -163,7 +163,7 @@ def create_refresh_datasetlist_private(dataset_name):
 ) 
 def clear_tmp_files(opened):
     if not opened:
-        delete_relate_tmpFiles(user_rds_path[current_user.username])
+        delete_relate_tmpFiles(user_rds_path[current_user.id])
     
 # 监控step3状态变化，激活时开始转换
 @dashapp.callback(
@@ -176,8 +176,8 @@ def clear_tmp_files(opened):
 ) 
 def start_convert_rds_to_h5ad(loading, value):
     if loading:
-        path_folder = os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.username)
-        convert_to_h5ad(user_rds_path[current_user.username], value)
+        path_folder = os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.id)
+        convert_to_h5ad(user_rds_path[current_user.id], value)
         return [
             html.Div(
                 id = f'TabsTabDataSet-contetn-private',
@@ -217,7 +217,7 @@ def skip_to_rds_convert(n_clicks):
 )
 def parse_rds_file(loading):
     if loading:
-        success, metadata = parse_rds(user_rds_path[current_user.username])
+        success, metadata = parse_rds(user_rds_path[current_user.id])
         if success:
             children=dmc.Group(
                 [
@@ -242,10 +242,10 @@ def parse_rds_file(loading):
 )
 def upload_refresh_datasetlist_private(upload):
     if upload:
-        path_folder = os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.username)
+        path_folder = os.path.join(PathConfig.DATA_PATH,'datasets','private', current_user.id)
         if upload['fileName'].endswith(".rds"):
             rds_file_path = os.path.join(path_folder, upload['taskId'], upload['fileName'])
-            user_rds_path[current_user.username] = rds_file_path
+            user_rds_path[current_user.id] = rds_file_path
             return dash.no_update, True, True, 'blue', '', 0
         return [
             html.Div(
@@ -379,7 +379,7 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
                             }
                         )
                 elif i['group'] == 'private':
-                    dataset_dir = os.path.join(path_server_folder,'datasets',i['group'],current_user.username,dataset)
+                    dataset_dir = os.path.join(path_server_folder,'datasets',i['group'],current_user.id,dataset)
                     if os.path.exists(dataset_dir):
                         options.append(
                             {

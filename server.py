@@ -3,14 +3,15 @@ import dash_bootstrap_components as dbc
 from dash_extensions.enrich import DashProxy, LogTransform, ServersideOutputTransform, MultiplexerTransform, TriggerTransform
 
 from flask_login import LoginManager, current_user
-from flask import request
+from flask import request, url_for, redirect, flash
 from flask_mail import Mail
 from flask_bcrypt import Bcrypt
 
 import os
 
-from stintev.models.auth import User, UserAccount
+from stintev.models.auth import User, User
 from stintev.config import PathConfig, SecretConfig
+from stintev.forms import RequesetResetPwdForm, ResetPwdForm
 
 dash._dash_renderer._set_react_version('18.2.0') # needed for dash_mantine_components v0.14
 
@@ -36,6 +37,7 @@ dashapp = DashProxy(
   ],
   prevent_initial_callbacks=True,
   requests_pathname_prefix='/',
+  suppress_callback_exceptions = True,
 )
 
 # config
@@ -43,12 +45,13 @@ dashapp = DashProxy(
 dashapp.config.suppress_callback_exceptions = True
 dashapp.server.secret_key = SecretConfig.SECRET_KEY
 dashapp.server.config['SECRET_KEY'] = SecretConfig.SECRET_KEY
+
+# mail box to send reset password email from
 dashapp.server.config['MAIL_SERVER'] = 'smtp.163.com'
 dashapp.server.config['MAIL_PORT'] = 465
-dashapp.server.config['MAIL_USE_TLS'] = True
 dashapp.server.config['MAIL_USE_SSL'] = True
 dashapp.server.config['MAIL_USERNAME'] = 'stintev@163.com'
-dashapp.server.config['MAIL_PASSWORD'] = 'wchh22@@stintev'
+dashapp.server.config['MAIL_PASSWORD'] = 'XDMCUELZOKCIKWTY'
 
 # flask-mail
 mail = Mail(dashapp.server)
@@ -59,10 +62,10 @@ login_manager = LoginManager()
 login_manager.login_view = '/'
 login_manager.init_app(dashapp.server)
 
-# 创建回调函数，作用是供login_manager通过username信息获取对应的User对象
+# 创建回调函数，作用是供login_manager通过id信息获取对应的User对象
 @login_manager.user_loader
 def load_user(user_id):
-    if UserAccount.query_user(user_id):
+    if User.query_by_id(user_id):
         curr_user = User()
         curr_user.id = user_id
         return curr_user
@@ -85,7 +88,7 @@ def upload():
     filename = request.files['file'].filename
 
     # 基于用户名，若本地不存在则会自动创建目录
-    path_to_save = os.path.join(PathConfig.DATA_PATH, 'datasets', 'private', current_user.username, uploadId)
+    path_to_save = os.path.join(PathConfig.DATA_PATH, 'datasets', 'private', current_user.id, uploadId)
     try:
         os.makedirs(path_to_save)
     except OSError:

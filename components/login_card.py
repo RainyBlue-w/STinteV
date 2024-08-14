@@ -1,4 +1,5 @@
 import dash_mantine_components as dmc
+import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import feffery_utils_components as fuc
 from dash import html
@@ -24,9 +25,22 @@ card_signin = dmc.Card(
                 dmc.PasswordInput(
                     w=350,
                     id = 'INPUT_password_signin-login',
-                    label="Password:",
+                    label = dmc.Group(
+                        gap=0,
+                        style={'width': '100%'},
+                        children=[
+                            'Password:',
+                            html.A(
+                                children='Forget password?',
+                                href='reset-password',
+                                style={'position': 'absolute', 'right': '0px'}
+                            ),
+                        ],
+                    ),
                     placeholder="Your password",
                     leftSection=DashIconify(icon="fluent:lock-closed-24-regular", width=24),
+                    styles = {'label': {'width': '100%'}},
+                    style = {'position': 'relative'}
                 ),
                 dmc.Button(
                     'Sign In',

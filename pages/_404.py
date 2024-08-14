@@ -10,15 +10,15 @@ def render_content():
                 [
                     fac.AntdResult(
                         status='404',
-                        title='页面不存在',
-                        subTitle='检查您的网址输入是否正确',
+                        title="404 not found",
+                        subTitle='Sorry, the page you visited does not exist.',
                         style={
                             'paddingBottom': 0,
                             'paddingTop': 0
                         }
                     ),
                     fac.AntdButton(
-                        '回到首页',
+                        'Back to main page',
                         type='link',
                         href='/',
                         target='_self'

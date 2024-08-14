@@ -12,5 +12,11 @@ class RouterConfig:
 
     # 合法pathname列表
     VALID_PATHNAME = [
-        '/', '/login'
+        '/', 
+        '/login',
+        '/reset-password',
     ]
+    
+class NetConfig:
+    
+    SERVER_ADDRESS = 'http://10.86.60.31:8055'

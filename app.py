@@ -11,8 +11,8 @@ import feffery_antd_components.alias as fac
 from flask_login import current_user, logout_user
 from stintev import pages
 from stintev.config import RouterConfig
-
 from stintev.server import dashapp
+from stintev.models.auth import User
 
 _navbar = dbc.NavbarSimple(
     [
@@ -44,7 +44,7 @@ dashapp.layout = dmc.MantineProvider(
     ]
 )
 
-def _navbar_item_user(user_id: str = None):
+def _navbar_item_user(user_id: str | None = None):
     
     if user_id is None:
         return dbc.NavLink('Login', href='login'),
@@ -77,10 +77,13 @@ def _navbar_item_user(user_id: str = None):
     Output('router-redirect-container', 'children'),
     
     Input('url', 'pathname'),
+    Input('url', 'search')
 )
-def router(pathname):
+def router(pathname, search):
     
-    # / /login /jdfl
+    print(f'pathname:{pathname}, search:{search}')
+    
+    # / /login /reset_password
     # 过滤非法pathname
     if pathname not in RouterConfig.VALID_PATHNAME:
         return (
@@ -89,28 +92,51 @@ def router(pathname):
             None
         )
     
-    # 检查是否已登录
-    if current_user.is_authenticated: # 若已登录
-        if pathname == '/login': # 重定向回主页面
+    if pathname == '/login':
+        if current_user.is_authenticated:
             return (
                 dash.no_update,
                 dash.no_update,
                 dcc.Location(pathname='/', id='router-redirect'),
             )
-        else: # 登录状态的主页面
-            return (
-                _navbar_item_user(current_user.username),
-                pages.main.render_content(),
-                None,
-            )
-    else:  # 若未登录
-        if pathname == '/login': # 渲染登录页面
+        else:
             return (
                 _navbar_item_user(None),
                 pages.login.render_content(),
-                None
+                dcc.Location(pathname='/login', id='router-redirect'),
             )
-        else: # 未登录状态的主页面
+    
+    if pathname == '/reset-password':
+        if search: # reset password
+            reset_token = search.split('=')[-1]
+            user = User.verify_reset_token(reset_token) 
+            if user: # token valid
+                return (
+                    _navbar_item_user(None),
+                    pages.reset_password.render_content(user_id=user.id),
+                    None,
+                )
+            else: # token invalid
+                return (
+                    _navbar_item_user(None),
+                    pages._404.render_content(),
+                    None,
+                )
+        else: # request reset
+            return (
+                _navbar_item_user(None),
+                pages.reset_password.render_content(user_id=None),
+                dcc.Location(pathname='/reset-password', id='router-redirect'),
+            )
+    
+    else:
+        if current_user.is_authenticated:
+            return (
+                _navbar_item_user(current_user.id),
+                pages.main.render_content(),                                            
+                None,
+            )
+        else:
             return (
                 _navbar_item_user(None),
                 pages.main.render_content(),

@@ -53,7 +53,7 @@ class UploadPanel:
                                         leftSection=DashIconify(icon='iconoir:database-star', width=24),
                                         data = sorted(
                                             os.listdir(
-                                                os.path.join(PathConfig.DATA_PATH, 'datasets','private',current_user.username)
+                                                os.path.join(PathConfig.DATA_PATH, 'datasets','private',current_user.id)
                                             )
                                         )
                                     )
@@ -286,7 +286,7 @@ def continute_to_upload(continute, dataset_new, description, dataset_exsiting, a
             if all([dataset_new, description]):
                 # 创建dataset目录
                 dir_dataset = os.path.join(
-                        PathConfig.DATA_PATH, 'datasets', 'private', current_user.username, dataset_new
+                        PathConfig.DATA_PATH, 'datasets', 'private', current_user.id, dataset_new
                     )
                 try:
                     os.makedirs(dir_dataset)

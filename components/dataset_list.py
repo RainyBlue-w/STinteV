@@ -145,7 +145,7 @@ class DatasetList:
     def __init__(
         self, 
         path_data_folder: str, 
-        group: str, # Public | Private
+        group: Literal['public', 'private'],
     ):
         
         if os.path.exists(path_data_folder) is False:
@@ -212,7 +212,7 @@ def delete_private_dataset(list_clicks, curIndexes):
                 del children_Grid[i]
                 del children_curIndexes[i]
                 dataset = re.findall(r'^\w+-(.+)',tid['index'])[0]
-                shutil.rmtree(os.path.join(PathConfig.DATA_PATH, f'datasets/private/{current_user.username}/{dataset}'))
+                shutil.rmtree(os.path.join(PathConfig.DATA_PATH, f'datasets/private/{current_user.id}/{dataset}'))
                 
         if len(curIndexes) <= 1: # 删除最后一个dataset
             return DatasetList.alert_empty(), children_Grid, children_curIndexes
