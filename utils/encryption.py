@@ -1,4 +1,4 @@
-import hashlib
+import bcrypt
 
-def str2md5(string):
-    return hashlib.md5(string.encode('utf-8')).hexdigest()
+def pwd_encrypt(pwd: str):
+    return bcrypt.hashpw(pwd.encode(encoding='utf-8'), bcrypt.gensalt())

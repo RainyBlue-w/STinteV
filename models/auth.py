@@ -4,7 +4,7 @@ from peewee import Model, SqliteDatabase, CharField
 import os
 from itsdangerous import URLSafeTimedSerializer
 from stintev.config import PathConfig, SecretConfig
-from stintev.utils import str2md5
+from stintev.utils import pwd_encrypt
 
 # database for user accounts
 db = SqliteDatabase(
@@ -44,7 +44,7 @@ class User(Model, UserMixin):
             {
                 'id': id,
                 # password md5加密
-                'password': str2md5(password),
+                'password': pwd_encrypt(password),
                 'email': email,
                 'user_level': user_level
             }
@@ -63,7 +63,7 @@ class User(Model, UserMixin):
         try:
             User.query_by_id(user_id)
             res=(User
-                 .update({User.password: str2md5(new_password)})
+                 .update({User.password: pwd_encrypt(new_password)})
                  .where(User.id == user_id)
                  .execute())
             return True
@@ -77,16 +77,14 @@ if __name__ == '__main__':
     users = [
         {
             'id': 'admin',
-            'username': 'admin',
             'email': '220222256@qq.com',
-            'password': '72fad20d53965ba5ed36f3a280f7ff2d',
+            'password': pwd_encrypt('wchh22@@stintev'),
             'user_level': 'admin',
         },
         {
             'id': 'wuc',
-            'username': 'wuc',
             'email': '1078497976@qq.com',
-            'password': '72fad20d53965ba5ed36f3a280f7ff2d',
+            'password': pwd_encrypt('wchh22@@stintev'),
             'user_level': 'normal',
         }
     ]

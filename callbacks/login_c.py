@@ -5,12 +5,13 @@ from dash import dcc
 from dash_iconify import DashIconify
 from flask_login import login_user
 import dash_mantine_components as dmc
+import bcrypt
 
 from email_validator import validate_email, EmailNotValidError
 
 from stintev.server import dashapp
 from stintev.models.auth import User, User
-from stintev.utils import str2md5
+from stintev.utils import pwd_encrypt
 from stintev.components import login_card
 
 @dashapp.callback( # Sign In 
@@ -31,7 +32,7 @@ def signin(n_clicks, username, password):
         if all([n_clicks, username, password]):
             query_by_id_result = User.query_by_id(username)
             if query_by_id_result: # 如果用户名存在
-                if query_by_id_result[0].password == str2md5(password):
+                if bcrypt.checkpw(password, query_by_id_result[0].password):
                     # 密码正确
                     current_user = User()
                     current_user.id = username

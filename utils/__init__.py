@@ -1,7 +1,7 @@
-from .encryption import str2md5
+from .encryption import pwd_encrypt
 from . import _check
 
 __all__ = [
-    'str2md5',
+    'pwd_encrypt',
     '_check'
 ]
