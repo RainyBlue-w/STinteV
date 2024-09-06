@@ -150,7 +150,7 @@ class TabOverview():
             children = fac.Affix(
                 html.Div([
                     dmc.Badge(
-                        'Global settings', color='blue', variant='light', 
+                        'Settings', color='blue', variant='light', 
                         radius='xs', size='xl', fullWidth=True,
                         leftSection=DashIconify(icon='fluent:settings-20-regular', width=20)
                     ),
@@ -163,7 +163,7 @@ class TabOverview():
                             self.control_plot_panels,
                             self.control_linkage,
                         ],
-                        value='control_linkage'
+                        value=['control_linkage']
                     ),
                 ]),
             ),

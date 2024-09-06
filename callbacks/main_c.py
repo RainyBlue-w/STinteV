@@ -263,17 +263,9 @@ def upload_refresh_datasetlist_private(upload):
 
 #endregion
 
-#region update PlotPanel
-clientside_callback( # update PlotPanel display_idx
-    ClientsideFunction(
-        namespace='overview',
-        function_name='update_PlotPanel_display_idx'
-    ),
-    Output({'type': 'PlotPanel_badge_panel_idx', 'index': ALL}, 'children'),
-    Input('STORE_plotPanelsCurUUID-overview', 'data')
-)
+#region choose dataset
 
-@dashapp.callback( # update dataset for tab_overview
+@dashapp.callback( # load choosen datasets
     Output('STORE_choosen_dataset-dataset', 'data'),
     Input({'type': 'DatasetList-checkboxGroup', 'index': ALL}, 'value'),    
     prevent_initial_call=False
@@ -316,9 +308,9 @@ def update_choosen_dataset_for_tab_overview(value):
     
     return store
 
-@dashapp.callback( # load choosen datasets in tab_dataset
-
+@dashapp.callback( # updates sample select options
     Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'options'),
+    Output('SELECT_sample-LR', 'options'),
     
     Input('STORE_choosen_dataset-dataset', 'data'),
     State('STORE_server_folder-dataset', 'data'),
@@ -397,7 +389,19 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
 
     all_options = [ options for i in range(len(ctx.outputs_list))]
     
-    return all_options
+    return all_options, options
+
+#endregion
+
+#region update PlotPanel
+clientside_callback( # update PlotPanel display_idx
+    ClientsideFunction(
+        namespace='overview',
+        function_name='update_PlotPanel_display_idx'
+    ),
+    Output({'type': 'PlotPanel_badge_panel_idx', 'index': ALL}, 'children'),
+    Input('STORE_plotPanelsCurUUID-overview', 'data')
+)
 
 @dashapp.callback( # PlotPanel updates options when sample/info update
     Output({'type': 'PlotPanel_item_select_column', 'index': MATCH}, 'options'),
@@ -832,3 +836,7 @@ def dataFilter_apply_filter_store_preserved_cells(
         return Serverside(adata.obs_names.to_list()), 'Selected cells: 0'
 
 # endregion
+
+#region ligand-receptor
+
+#endregion

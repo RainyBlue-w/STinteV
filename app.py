@@ -81,7 +81,7 @@ def _navbar_item_user(user_id: str | None = None):
 )
 def router(pathname, search):
     
-    print(f'pathname:{pathname}, search:{search}')
+    # print(f'pathname:{pathname}, search:{search}')
     
     # / /login /reset_password
     # 过滤非法pathname
@@ -147,7 +147,7 @@ def router(pathname, search):
     Output('DIV_navbar_item_user-app', 'children'),
     Output('app-mount', 'children'),
     Output('router-redirect-container', 'children'),
-
+    
     Input('BUTTON_logout-app', 'n_clicks')
 )
 def logout_app(n_clicks):

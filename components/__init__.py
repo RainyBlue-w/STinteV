@@ -5,6 +5,7 @@ from .upload_panel import UploadPanel
 from .data_filter import DataFilter
 from .resetpwd_card import ResetpwdCard
 from . import login_card
+from .select_with_color import SelectWithColor
 
 __all__ = [
     'DatasetList',
@@ -14,4 +15,5 @@ __all__ = [
     'UploadPanel',
     'login_card',
     'ResetpwdCard',
+    'SelectWithColor'
 ]

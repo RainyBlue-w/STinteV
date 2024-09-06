@@ -30,7 +30,7 @@ class ParamsPlotMetadataEmbedding(BaseModel):
 def plot_feature_embedding(
     adata: anndata.AnnData,
     preserved_cells: List,
-    feature: str,
+    feature: str | List,
     embedding: str,
     sort: bool = True,
     ascending: bool = True,
@@ -40,15 +40,26 @@ def plot_feature_embedding(
         (1.00, "#225EA8")
     ],
     marker_size: float = 2.0,
+    legend_title: str | None = None,
     **kws
 ) -> go.Figure :
     
+    '''
+    function to plot feature on embedding(2D/3D)
+    
+    feature: str | List
+        str -> feature name
+        List -> list of values, as the same length as `preserved_cells`
+    legend_title: str | None, default None
+        the title of the legend, if None, it will be the feature name
+    '''
+    
     if adata.obsm[embedding].shape[1] == 2:
         plot = _plot_feature_embedding_2d(adata, preserved_cells, feature, embedding, 
-                                          sort, ascending, cmap, marker_size, **kws)
+                                          sort, ascending, cmap, marker_size, legend_title, **kws)
     elif adata.obsm[embedding].shape[1] == 3:
         plot = _plot_feature_embedding_3d(adata, preserved_cells, feature, embedding, 
-                                          sort, ascending, cmap, marker_size, **kws)
+                                          sort, ascending, cmap, marker_size, legend_title, **kws)
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
     
@@ -59,7 +70,7 @@ def plot_metadata_embedding(
     preserved_cells: List,
     column: str,
     embedding: str,
-    cmap: Dict = None,
+    cmap: Dict | None = None,
     marker_size: float = 2.0,
     color_discrete_sequence: List = px.colors.qualitative.Alphabet,
     **kws
@@ -79,7 +90,7 @@ def plot_metadata_embedding(
 def _plot_feature_embedding_2d(
     adata: anndata.AnnData,
     preserved_cells: List,
-    feature: str,
+    feature: str | List,
     embedding: str,
     sort: bool = True,
     ascending: bool = True,
@@ -89,11 +100,18 @@ def _plot_feature_embedding_2d(
         (1.00, "#225EA8")
     ],
     marker_size: float = 2.0,
+    legend_title: str | None = None,
     **kws
 ) -> go.Figure :
     
     """
     plot feature on 2D-embedding
+    
+    feature: str | List
+        str -> feature name
+        List -> list of values, as the same length as `preserved_cells`
+    legend_title: str | None, default None
+        the title of the legend, if None, it will be the feature name
     """
 
     pdf = pd.DataFrame(adata.obsm[embedding], index=adata.obs_names, columns=['X','Y'])
@@ -102,12 +120,20 @@ def _plot_feature_embedding_2d(
         'Y': [pdf['Y'].min(), pdf['Y'].max()]
     }
     pdf = pdf.loc[preserved_cells,:]
-    pdf = pd.concat([pdf, adata[preserved_cells, feature].to_df()], axis=1)
+    
+    if isinstance(feature, str):
+        pdf = pd.concat([pdf, adata[preserved_cells, feature].to_df()], axis=1)
+        legend_title = feature
+        pdf.rename(columns={feature: legend_title}, inplace=True)
+    else: # if feature is a list of values
+        pdf[legend_title] = feature
+        
     if sort is True:
-        pdf = pdf.sort_values(by=feature, ascending=ascending)
+        pdf = pdf.sort_values(by=legend_title, ascending=ascending)
+    
     plot = px.scatter(
         data_frame = pdf,
-        x = 'X', y = 'Y', color = feature,
+        x = 'X', y = 'Y', color = legend_title,
         color_continuous_scale = cmap, render_mode='webgl',
         **kws
     )
@@ -135,7 +161,7 @@ def _plot_feature_embedding_2d(
 def _plot_feature_embedding_3d(
     adata: anndata.AnnData,
     preserved_cells: List,
-    feature: str,
+    feature: str | List,
     embedding: str,
     sort: bool = True,
     ascending: bool = True,
@@ -145,6 +171,7 @@ def _plot_feature_embedding_3d(
         (1.00, "#225EA8")
     ],
     marker_size: float = 2.0,
+    legend_title: str | None = None,
     **kws
 ) -> go.Figure :
 
@@ -158,13 +185,20 @@ def _plot_feature_embedding_3d(
         'Z': [pdf['Z'].min(), pdf['Z'].max()]
     }
     pdf = pdf.loc[preserved_cells,:]
-    pdf = pd.concat([pdf, adata[preserved_cells, feature].to_df()], axis=1)
+    
+    if isinstance(feature, str):
+        pdf = pd.concat([pdf, adata[preserved_cells, feature].to_df()], axis=1)
+        legend_title = feature
+        pdf.rename(columns={feature: legend_title}, inplace=True)
+    else: # if feature is a list of values
+        pdf[legend_title] = feature
+        
     if sort is True:
-      pdf = pdf.sort_values(by=feature, ascending=ascending)
+      pdf = pdf.sort_values(by=legend_title, ascending=ascending)
     plot = px.scatter_3d(
         data_frame = pdf,
         x = 'X', y = 'Y', z = 'Z',
-        color = feature,
+        color = legend_title,
         color_continuous_scale = cmap,
         **kws
     )
@@ -282,13 +316,9 @@ def _plot_metadata_embedding_3d(
 
     return plot
 
-
 if __name__ == '__main__':
     
     from sys import getsizeof
     
     adata = anndata.read_h5ad('/data1/share/omics-viewer/spatial/matrix_data/embryo_3-2-E8.0_min400_Ann_HC0.5.h5ad', backed='r')
-    
-    _plot_feature_embedding_2d(adata, feature='T', embedding='X_sagittal')
-
     

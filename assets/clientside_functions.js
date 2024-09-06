@@ -32,5 +32,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             let out_label = out_idx.map(x => 'Panel '+(x+1))
             return out_label
         }
+    },
+
+    LR: {
+        grid_container_resize: function (width, height) {
+            window.dispatchEvent(new Event('resize'))
+            return height
+        },
     }
 });
