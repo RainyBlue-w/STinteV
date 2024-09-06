@@ -45,14 +45,13 @@ def bivariate_spatial_association(
         },
         index = [f'{ligand}_{receptor}']
     )
-    if not adata.raw:
-        adata.raw = adata
+    
     sdm.spatialdm_local(
         adata, n_perm=1000, nproc=4,
         specified_ind=[f'{ligand}_{receptor}'],
         method=method
     )
-    sdm.sig_spots(adata, method=method, fdr=False, threshold=0.1)
+    sdm.sig_spots(adata, method=method, fdr=False, threshold=0.05)
     
     if method == 'z-score':
         return ( 1 - adata.uns['local_z_p'].loc[f'{ligand}_{receptor}'] ).to_list()

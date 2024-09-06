@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import feffery_antd_components.alias as fac
 import feffery_utils_components as fuc
-from dash import dcc, no_update, ctx, set_props
+from dash import dcc, no_update, ctx, set_props, MATCH, ALL, Patch
 from dash_extensions.enrich import clientside_callback, Output, Input, ClientsideFunction, callback
 from dash.exceptions import PreventUpdate
 
@@ -310,8 +310,11 @@ def update_cellchatdb_table(species, pathway):
 # update embedding options, LR options
 @callback(
     Output('SELECT_embedding-LR', 'options'),
+    Output('SELECT_embedding-LR', 'value'),
     Output({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_ligand-LR'}, 'options'),
+    Output({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_ligand-LR'}, 'value'),
     Output({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_receptor-LR'}, 'options'),
+    Output({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_receptor-LR'}, 'value'),
     
     Input('SELECT_sample-LR', 'value'),
 )
@@ -329,22 +332,27 @@ def update_embedding_lr_options(sample):
     )
     
     return (
-        [ {'label': i, 'value': i} for i in adata.obsm.keys() ], 
-        [ {'label': i, 'value': i} for i in adata.var_names.to_list() ], 
-        [ {'label': i, 'value': i} for i in adata.var_names.to_list() ]
+        [ {'label': i, 'value': i} for i in adata.obsm.keys() ], None,
+        [ {'label': i, 'value': i} for i in adata.var_names.to_list() ], None, 
+        [ {'label': i, 'value': i} for i in adata.var_names.to_list() ], None,
     )
-    
+
 # update plots
 @callback(
-    Output({'type': 'FUCGRIDITEM_graph-LR', 'index': 'ligand'}, 'figure'),
-    Output({'type': 'FUCGRIDITEM_graph-LR', 'index': 'receptor'}, 'figure'),
-    Output({'type': 'FUCGRIDITEM_graph-LR', 'index': 'correlation'}, 'figure'),
+    Output({'type': 'FUCGRIDITEM_graph-LR', 'index': ALL}, 'figure'),
     
     Input('SELECT_sample-LR', 'value'),
     Input('SELECT_embedding-LR', 'value'),
     Input({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_ligand-LR'}, 'value'),
     Input({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_receptor-LR'}, 'value'),
     Input('BUTTON_calculate_correlation-LR', 'n_clicks'),
+    running = [
+        ( Output('BUTTON_calculate_correlation-LR', 'loading'), True, False),
+        ( Output('SELECT_sample-LR', 'disabled'), True, False ),
+        ( Output('SELECT_embedding-LR', 'disabled'), True, False ),
+        ( Output({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_ligand-LR'}, 'disabled'), True, False ),
+        ( Output({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_receptor-LR'}, 'disabled'), True, False, ) 
+    ],
     prevent_initial_call=True,
     on_error = TabLigandReceptor.error_handler,
 )
@@ -365,7 +373,7 @@ def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
         raise PreventUpdate
 
     adata = anndata.read_h5ad(
-        sample, backed='r'
+        sample
     )
 
     tid = ctx.triggered_id
@@ -397,21 +405,57 @@ def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
             plot_receptor = TabLigandReceptor.empty_scatter()
 
     if tid == 'BUTTON_calculate_correlation-LR':
+
         if ligand is not None and receptor is not None:
+            corr = bivariate_spatial_association(
+                adata=adata,
+                ligand=ligand,
+                receptor=receptor,
+                single_cell=False,
+                embedding=embedding
+            )
             plot_correlation = plot_feature_embedding(
                 adata = adata,
                 preserved_cells=adata.obs_names.to_list(),
-                feature = bivariate_spatial_association(
-                    adata=adata,
-                    ligand=ligand,
-                    receptor=receptor,
-                    single_cell=True,
-                    embedding=embedding
-                ),
-                embedding=embedding
+                feature = corr,
+                embedding=embedding,
+                legend_title=f'{ligand}-{receptor}',
+                cmap = [
+                    (0.00, "#3D739C"),
+                    (0.5, "#F4F4F4"),
+                    (1.00, "#c85863"),
+                ],
             )
         else:
             raise Exception('ligand or receptor empty')
 
-    return plot_ligand, plot_receptor, plot_correlation
+    return [plot_ligand, plot_receptor, plot_correlation]
 
+# sync camera between plots
+@callback(
+    output = {
+        'graphs': Output({'type': 'FUCGRIDITEM_graph-LR', 'index': ALL}, 'figure'),
+    },
+    inputs = {
+        'relayoutData': Input({'type': 'FUCGRIDITEM_graph-LR', 'index': ALL}, 'relayoutData'),
+    },
+    prevent_initial_call = True
+)
+def sync_camera_between_plots_LR(relayoutData):
+    
+    tid = ctx.triggered_id
+    graph_order = ['ligand', 'receptor', 'correlation'].index(tid['index'])
+    view_to_set = relayoutData[graph_order]
+    patch = Patch()
+    if 'scene.camera' in view_to_set:
+        patch['layout']['scene']['camera'] = view_to_set['scene.camera']
+    if 'scene.aspectratio' in view_to_set:
+        patch['layout']['scene']['aspectmode'] = 'manual'
+        patch['layout']['scene']['aspectratio'] = view_to_set['scene.aspectratio']
+    
+    return_graphs = [no_update]*3
+    for i in range(3):
+        if i != graph_order:
+            return_graphs[i] = patch
+
+    return {'graphs': return_graphs}
