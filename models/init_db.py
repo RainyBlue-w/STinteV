@@ -3,8 +3,8 @@ from flask_login import UserMixin
 from peewee import Model, SqliteDatabase, CharField
 import os
 from itsdangerous import URLSafeTimedSerializer
-from ..config import PathConfig, SecretConfig
-from ..utils import pwd_encrypt
+from .config import PathConfig, SecretConfig
+from .utils import pwd_encrypt
 
 # database for user accounts
 db = SqliteDatabase(
