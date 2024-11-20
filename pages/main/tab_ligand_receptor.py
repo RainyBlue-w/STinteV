@@ -30,7 +30,6 @@ class TabLigandReceptor():
     _rowHeight_plot_panel = 350
     _height_plot_panel_item: int = 300
     
-    
     @staticmethod
     def error_handler(e):
         set_props(
@@ -81,7 +80,7 @@ class TabLigandReceptor():
         return panel
 
     def __init__(self) -> None:
-        
+
         self.control_sample_selection = dmc.AccordionItem(
             children=[
                 dmc.AccordionControl(
@@ -213,7 +212,7 @@ class TabLigandReceptor():
                 ]),
             )
         )
-        
+
         self.content = fac.Content(
             className='fac-Content',
             children=fuc.FefferyDiv(
@@ -254,7 +253,6 @@ class TabLigandReceptor():
                 self.drawer_cellchatdb
             ]
         )
-    pass
 
 # open cellchatdb drawer
 @callback(

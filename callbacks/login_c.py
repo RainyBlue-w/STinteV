@@ -32,7 +32,7 @@ def signin(n_clicks, username, password):
         if all([n_clicks, username, password]):
             query_by_id_result = User.query_by_id(username)
             if query_by_id_result: # 如果用户名存在
-                if bcrypt.checkpw(password, query_by_id_result[0].password):
+                if bcrypt.checkpw(password.encode(encoding='utf-8'), query_by_id_result[0].password.encode('utf-8')):
                     # 密码正确
                     current_user = User()
                     current_user.id = username
