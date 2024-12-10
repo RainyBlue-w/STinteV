@@ -1,0 +1,60 @@
+.fac-Layout {
+    height: 94vh;
+}
+
+.fac-Sider {
+    border: 1px solid #dee2e6;
+    overflow-y: scroll;
+}
+
+.fac-Layout .ant-layout-sider-trigger {
+    /* set the position of sidebar trigger button */
+    /* position: absolute !important; */
+    background-color: #177d9a;
+    border-radius: 10px;
+}
+
+.fac-Content {
+    /* background-color: #FFFFFF; */
+    width: calc(85vw - 10px);
+}
+
+.fuc-Grid-container-overview {
+    width: calc(85vw - 10px);
+    display: flex;
+}
+
+.fuc-Grid {
+    width: 100%;
+}
+
+.fuc-Grid .feffery-grid-item-dragger{
+    /* dragger size */
+    width: 24px;
+}
+
+.fuc-GirdItem {
+    display: block;
+    justify-content: center;
+    align-items: center;
+    overflow: clip;
+}
+
+.fuc-Div-plotPanel-settings {
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+
+.fuc-div-plotPanel-gridItem {
+    margin: -25px 0 0 0;
+}
+
+.dmc-Text-select-label-PlotPanel{
+    font-size: 12px;
+}
+
+.dmc-Text-select-label-sider{
+    font-size: 12px;
+}
+
+
