@@ -57,4 +57,9 @@
     font-size: 12px;
 }
 
-
+.PlotPanel-legend-chip-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-wrap: balance;
+    line-height: 0.8;
+}

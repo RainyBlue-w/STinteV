@@ -1,6 +1,7 @@
 import dash._dash_renderer
 import dash_bootstrap_components as dbc
-from dash_extensions.enrich import DashProxy, LogTransform, ServersideOutputTransform, MultiplexerTransform, TriggerTransform, NoOutputTransform
+from dash_extensions.enrich import DashProxy, LogTransform, ServersideOutputTransform
+from dash_extensions.enrich import MultiplexerTransform, TriggerTransform, CycleBreakerTransform
 
 from flask_login import LoginManager, current_user
 from flask import request, url_for, redirect, flash
@@ -34,7 +35,7 @@ dashapp = DashProxy(
   ],
   transforms = [
     LogTransform(), ServersideOutputTransform(), MultiplexerTransform(), 
-    TriggerTransform(), NoOutputTransform()
+    TriggerTransform(), CycleBreakerTransform()
   ],
   prevent_initial_callbacks=True,
   requests_pathname_prefix='/',

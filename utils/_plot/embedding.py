@@ -64,7 +64,7 @@ def plot_feature_embedding(
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
     
     return plot
-
+    
 def plot_metadata_embedding(
     adata: anndata.AnnData,
     preserved_cells: List,
@@ -84,6 +84,10 @@ def plot_metadata_embedding(
                                            cmap, marker_size, color_discrete_sequence=color_discrete_sequence, **kws)
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
+    
+    plot.update_layout(
+        showlegend = False,
+    )
     
     return plot
 

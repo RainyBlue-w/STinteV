@@ -10,8 +10,8 @@ import uuid
 
 class PanelLinkages:
 
-    linkage_types = ['column', 'view', 'sample', 'embedding']
-    LinkageTypes = List[Literal['column', 'view', 'sample', 'embedding', None]]
+    linkage_types = ['feature', 'view', 'sample', 'embedding', 'highlighting']
+    LinkageTypes = List[Literal['feature', 'view', 'sample', 'embedding', 'highlighting', None]]
     
     @staticmethod
     def new_linkage(index):

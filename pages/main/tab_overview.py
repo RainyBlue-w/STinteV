@@ -46,10 +46,13 @@ class TabOverview():
             PlotPanel(index=uuid.uuid1().hex),
         ]
 
-        self.store_plotPanelsCurUUID = dcc.Store(
-            id='STORE_plotPanelsCurUUID-overview', 
-            data = [
-                self._init_plot_panels[i]._index for i in range( self._n_init_plot_panels )
+        self._store = html.Div(
+            [
+                dcc.Store(
+                    id='STORE_plotPanelsCurUUID-overview', 
+                    data = [self._init_plot_panels[i]._index for i in range( self._n_init_plot_panels )]
+                ),
+                dcc.Store(id='STORE_global_cmap-overview')
             ]
         )
 
@@ -207,7 +210,7 @@ class TabOverview():
             label = 'Overview',
             tab_id = 'TAB-overview',
             children = [
-                self.store_plotPanelsCurUUID,
+                self._store,
                 fac.Layout(
                     [
                         self.sider,

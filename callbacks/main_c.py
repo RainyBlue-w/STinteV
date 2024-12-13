@@ -7,6 +7,7 @@ import dash
 
 import anndata
 import os
+from fastapi import background
 import numpy as np
 from typing import List, Literal
 from flask_login import current_user
@@ -21,7 +22,8 @@ from stintev.utils._io import user_rds_path, parse_rds, convert_to_h5ad, delete_
 
 @dashapp.callback( # update the rowHeight for PlotPanel-items
     output = dict(
-        styles = Output({'type': 'PlotPanel_item_graph', 'index': ALL}, 'style'),
+        style_graph = Output({'type': 'PlotPanel_item_graph', 'index': ALL}, 'style'),
+        style_legend = Output({'type': 'PlotPanel_item_categoriesLegend', 'index': ALL}, 'style'),
         rowHeight = Output('FUCGRID_content-overview', 'rowHeight')
     ),
     inputs = [
@@ -32,11 +34,13 @@ from stintev.utils._io import user_rds_path, parse_rds, convert_to_h5ad, delete_
 )
 def update_height_for_plot_panel_items(height):
 
-    n_outputs = len(ctx.outputs_grouping['styles'])
-    return {
-        'styles': [ {'height': [f'{height-75}px']} ] * n_outputs,
-        'rowHeight': height
+    n_outputs = len(ctx.outputs_grouping['style_graph'])
+    return_list =  {
+        'style_graph' : [ {'height': [f'{height-75}px']} ] * n_outputs,
+        'style_legend' : [ {'height': [f'{height-75}px'], 'overflow-y': 'auto'} ] * n_outputs,
+        'rowHeight' : height,
     }
+    return return_list
 
 @dashapp.callback( # add & delete PlotPanel
     Output('FUCGRID_content-overview', 'children', allow_duplicate=True),
@@ -309,14 +313,20 @@ def update_choosen_dataset_for_tab_overview(value):
     return store
 
 @dashapp.callback( # updates sample select options
-    Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'options'),
-    Output('SELECT_sample-LR', 'options'),
-    
-    Input('STORE_choosen_dataset-dataset', 'data'),
-    State('STORE_server_folder-dataset', 'data'),
-    prevent_initial_call=False
+    output = {
+        'overview_panels': Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'options'),
+        'LR_panels': Output('SELECT_sample-LR', 'options'),
+    },
+    inputs = {
+        'choosen_dataset': Input('STORE_choosen_dataset-dataset', 'data'),
+        'path_server_folder': State('STORE_server_folder-dataset', 'data'),
+    },
+    prevent_initial_call = True
 )
-def load_choosen_datasets(choosen_dataset, path_server_folder):
+def load_choosen_datasets(
+    choosen_dataset: List[dict], 
+    path_server_folder: str
+):
     
     ''' choosen_dataset: [
         {'group': 'public', 'choosen': ['spatial']},
@@ -324,17 +334,12 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
     ]
     '''
     
-    ''' ctx.outputs_list: 
-    [
-        {
-            'id': {'index': '6579dbb22fb811ef84d03cecef387085', 'type': 'PlotPanel_item_select_sample'}, 
-            'property': 'data'
-        }, 
-        {
-            'id': {'index': '663b90b82fb811ef84d03cecef387085', 'type': 'PlotPanel_item_select_sample'}, 
-            'property': 'data'
-        }
-    ]
+    ''' ctx.outputs_grouping: {
+        'overview_panels': [
+            {'id': {'index': '639aeabcb87e11efa5a13cecef387084', 'type': 'PlotPanel_item_select_sample'}, 'property': 'options'}, 
+            {'id': {'index': '63b1b97cb87e11efa5a13cecef387084', 'type': 'PlotPanel_item_select_sample'}, 'property': 'options'}
+        ], 
+        'LR_panels': {'id': 'SELECT_sample-LR', 'property': 'options'}}
     '''
     
     ''' output: options = [
@@ -387,9 +392,12 @@ def load_choosen_datasets(choosen_dataset, path_server_folder):
                             }
                         )
 
-    all_options = [ options for i in range(len(ctx.outputs_list))]
+    all_options = {
+        'overview_panels': [ options for i in range(len(ctx.outputs_grouping['overview_panels'])) ],
+        'LR_panels': options
+    }
     
-    return all_options, options
+    return all_options
 
 #endregion
 
@@ -446,8 +454,11 @@ def update_PlotPanel_column_options(info, path_sample):
 @dashapp.callback( # update PlotPanel figure
     Output({'type': 'PlotPanel_item_graph', 'index': MATCH}, 'figure'),
     Output({'type': 'PlotPanel_store_traceNumber', 'index': MATCH}, 'data'),
+    Output({'type': 'PlotPanel_store_curCategories', 'index': MATCH}, 'data'),
+    Output({'type': 'PlotPanel_item_categoriesLegend', 'index': MATCH}, 'children'), # categoriesLegend in PlotPanel
     
     Input({'type': 'PlotPanel_item_select_column', 'index': MATCH}, 'value'),
+    Input({'type': 'PlotPanel_item_select_column', 'index': MATCH}, 'id'), # get content of MATCH by id['index']
     Input({'type': 'PlotPanel_item_select_embedding', 'index': MATCH}, 'value'),
     
     Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
@@ -455,11 +466,13 @@ def update_PlotPanel_column_options(info, path_sample):
     Input({'type': 'DataFilter_store_preserved_cells', 'index': MATCH}, 'data'),
     prevent_initial_call=True
 )
-def update_PlotPanel_figure(column, embedding, path_sample, info, preserved_cells):
+def update_PlotPanel_figure(column, id, embedding, path_sample, info, preserved_cells):
     
     adata = anndata.read_h5ad(
         path_sample, backed='r'
     )
+    
+    index = id['index']
     
     if preserved_cells is None or len(preserved_cells) < 1:
         preserved_cells = adata.obs_names
@@ -467,13 +480,20 @@ def update_PlotPanel_figure(column, embedding, path_sample, info, preserved_cell
     if info == 'feature' and column and embedding and path_sample and info:
         figure = plot_feature_embedding(adata, preserved_cells, column, embedding)
         traceNumber = 1
+        curCategories = None
+        categoriesLegend = []
     elif info == 'metadata' and column and embedding and path_sample and info:
         figure = plot_metadata_embedding(adata, preserved_cells, column, embedding)
         traceNumber = len(adata.obs[column].unique())
+        curCategories = adata.obs[column].cat.categories.to_list()
+        categoriesLegend = PlotPanel.categoriesLegend(
+            curCategories,  # order of px-legend, px-traces are all defined by series.cat.categories
+            index = index, cmap=None
+        )
     else:
         raise PreventUpdate
     
-    return figure, traceNumber
+    return figure, traceNumber, curCategories, categoriesLegend
 
 @dashapp.callback( # update marker_size panel
     Output({'type': 'PlotPanel_item_graph', 'index': MATCH}, 'figure'),
@@ -492,7 +512,6 @@ def update_PlotPanel_pointSize_panel(pointSize, traceNumber):
 )
 def update_PlotPanel_pointSize_global(pointSize):
     return [pointSize]*len(ctx.outputs_list)
-
 
 #endregion
 
@@ -613,49 +632,56 @@ def apply_linkage(all_inputs):
     output = {
         'samples': Output({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
         'embeddings': Output({'type': 'PlotPanel_item_select_embedding', 'index': ALL}, 'value'),
-        'columns' : Output({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
+        'features' : Output({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
         'infos': Output({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
         'graphs' : Output({'type': 'PlotPanel_item_graph', 'index': ALL}, 'figure'),
+        'highlight_index': Output({'type': 'PlotPanel_store_selectedCategories_index', 'index': ALL}, 'data'),
     },
     inputs = {
         'samples' : Input({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
         'embeddings': Input({'type': 'PlotPanel_item_select_embedding', 'index': ALL}, 'value'),
-        'columns' : Input({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
+        'features' : Input({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
         'infos': Input({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
         'relayoutDatas' : Input({'type': 'PlotPanel_item_graph', 'index': ALL}, 'relayoutData'),
         'linkages_type': Input({'type': 'PanelLinkages_select_type', 'index': ALL}, 'value'),
         'linkages_panels': Input({'type': 'PanelLinkages_select_linkage', 'index': ALL}, 'value'),
         'linkages_apply': Input({'type': 'PanelLinkages_switch_apply', 'index': ALL}, 'checked'),
         'plotPanel_uuids': State('STORE_plotPanelsCurUUID-overview', 'data'),
-    }
+        'curHighlight_index': Input({'type': 'PlotPanel_store_selectedCategories_index', 'index': ALL}, 'data'),
+        'plotPanel_store_curCategories': State({'type': 'PlotPanel_store_curCategories', 'index': ALL}, 'data'),
+    },
 )
 def update_linked_panels_sample(
-    samples: List[str], embeddings: List[str], columns: List[str], infos: List[str],
+    samples: List[str], embeddings: List[str], features: List[str], infos: List[str],
     relayoutDatas: List, 
     linkages_type: List[PanelLinkages.LinkageTypes],
     linkages_panels: List[str], # uuid
     linkages_apply: List[bool],
     plotPanel_uuids: List[str],
+    plotPanel_store_curCategories: List[List[str]], # categories of each panel
+    curHighlight_index: List[List[int]]
 ):
     
     return_dict = {}
-    
     tid = ctx.triggered_id
+    
     if tid and 'type' in tid and tid['type'].startswith('PanelLinkages_'): 
         # linkages热改动触发
         raise PreventUpdate # 暂时
     elif tid and 'type' in tid and tid['type'].startswith('PlotPanel_'): 
         # PlotPanel select改动触发
+        if not any(linkages_apply): # 至少有linkage再执行
+            raise PreventUpdate
         
         return_samples = [no_update]*len(plotPanel_uuids)
         return_embeddings = [no_update]*len(plotPanel_uuids)
-        return_columns = [no_update]*len(plotPanel_uuids)
+        return_features = [no_update]*len(plotPanel_uuids)
         return_infos = [no_update]*len(plotPanel_uuids)
-        return_graphs = [no_update]*len(plotPanel_uuids)
+        return_graphs = [Patch()]*len(plotPanel_uuids)
+        return_highlightIndex = [no_update]*len(plotPanel_uuids)
         
         panel_order = plotPanel_uuids.index(tid['index']) # 触发panel在队列中的位置
         
-            
         if tid['type'] == 'PlotPanel_item_select_sample':
             for type, panels, apply in zip(linkages_type, linkages_panels, linkages_apply): # 对每条linkage
                 if (apply is False) or (type is [None]) or (type is None): # 如果没有apply或者type没有选，跳过该条linkage
@@ -689,12 +715,12 @@ def update_linked_panels_sample(
                 if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
                     continue
                     
-                if 'column' in type and len(panels) >= 2: # column
-                    column_to_set = columns[panel_order]
+                if 'feature' in type and len(panels) >= 2: # column
+                    column_to_set = features[panel_order]
                     info_to_set = infos[panel_order]
                     for i,uid in enumerate(plotPanel_uuids):
                         if uid in panels and uid != tid['index']:
-                            return_columns[i] = column_to_set
+                            return_features[i] = column_to_set
                             return_infos[i] = info_to_set
                        
         if tid['type'] == 'PlotPanel_item_graph': 
@@ -703,27 +729,45 @@ def update_linked_panels_sample(
                     continue
                 if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
                     continue
+                
                 if 'view' in type and len(panels) >= 2: # view
-                    
                     view_to_set = relayoutDatas[panel_order]
-                    
                     for i,uid in enumerate(plotPanel_uuids):
                         if uid in panels and uid != tid['index']:
-                            patch = Patch()
                             if 'scene.camera' in view_to_set:
-                                patch['layout']['scene']['camera'] = view_to_set['scene.camera']
+                                return_graphs[i]['layout']['scene']['camera'] = view_to_set['scene.camera']
                             if 'scene.aspectratio' in view_to_set:
-                                patch['layout']['scene']['aspectmode'] = 'manual'
-                                patch['layout']['scene']['aspectratio'] = view_to_set['scene.aspectratio']
-                            return_graphs[i] = patch
+                                return_graphs[i]['layout']['scene']['aspectmode'] = 'manual'
+                                return_graphs[i]['layout']['scene']['aspectratio'] = view_to_set['scene.aspectratio']
 
+        # categoriesLegend 触发
+        if tid['type'] == 'PlotPanel_store_selectedCategories_index':
+            for type, panels, apply in zip(linkages_type, linkages_panels, linkages_apply): # 对每条linkage
+                if (apply is False) or (type is [None]) or (type is None): # 如果没有apply或者type没有选，跳过该条linkage
+                    continue
+                if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
+                    continue
+                
+                if 'highlighting' in type and len(panels) >= 2: # highlighting
+                    cat_A = plotPanel_store_curCategories[panel_order]
+                    hlt_A = [ cat_A[i] for i in curHighlight_index[panel_order] ]
+                    for i,uid in enumerate(plotPanel_uuids):
+                        if uid in panels and uid != tid['index']:
+                            cat_B = plotPanel_store_curCategories[i]
+                            hlt_B = [ cat_B[i] for i in curHighlight_index[i] ]
+                            hlt_after = set(hlt_A + hlt_B) - (set(cat_A)-set(hlt_A))
+                            index_to_hlt = [ cat_B.index(cat) for cat in hlt_after if cat in cat_B]
+                            return_highlightIndex[i] = index_to_hlt
+            
+            
             
         return_dict = {
             'samples': return_samples,
             'embeddings': return_embeddings,
-            'columns': return_columns,
+            'features': return_features,
             'infos': return_infos,
-            'graphs': return_graphs
+            'graphs': return_graphs,
+            'highlight_index': return_highlightIndex
         }
         
         return return_dict
