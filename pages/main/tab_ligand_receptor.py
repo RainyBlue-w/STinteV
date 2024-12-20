@@ -371,10 +371,12 @@ def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
         raise PreventUpdate
 
     adata = anndata.read_h5ad(
-        sample, backed='r'
+        sample, backed=False
     )
 
     tid = ctx.triggered_id
+
+
 
     plot_ligand = no_update
     plot_receptor = no_update

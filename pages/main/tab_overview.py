@@ -46,6 +46,8 @@ class TabOverview():
             PlotPanel(index=uuid.uuid1().hex),
         ]
 
+
+
         self._store = html.Div(
             [
                 dcc.Store(

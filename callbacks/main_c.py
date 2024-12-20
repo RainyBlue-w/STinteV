@@ -484,8 +484,9 @@ def update_PlotPanel_figure(column, id, embedding, path_sample, info, preserved_
         categoriesLegend = []
     elif info == 'metadata' and column and embedding and path_sample and info:
         figure = plot_metadata_embedding(adata, preserved_cells, column, embedding)
-        traceNumber = len(adata.obs[column].unique())
-        curCategories = adata.obs[column].cat.categories.to_list()
+        tmp_curCategories = adata.obs.loc[preserved_cells, column].unique()
+        traceNumber = len(tmp_curCategories)
+        curCategories = [cat for cat in adata.obs[column].cat.categories.to_list() if cat in tmp_curCategories]
         categoriesLegend = PlotPanel.categoriesLegend(
             curCategories,  # order of px-legend, px-traces are all defined by series.cat.categories
             index = index, cmap=None

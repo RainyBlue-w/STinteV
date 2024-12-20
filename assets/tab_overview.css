@@ -4,7 +4,7 @@
 
 .fac-Sider {
     border: 1px solid #dee2e6;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .fac-Layout .ant-layout-sider-trigger {
