@@ -14,3 +14,15 @@ class Notifications:
         autoClose=2000, # ms
         icon = DashIconify(icon='icon-park-outline:close-one', width=24)
     )
+        
+    @staticmethod
+    def notif_new_session_id():
+        return  dmc.Notification(
+            title = 'New Session ID',
+            message= 'The session ID cannot be retrieved!! Please save it properly.',
+            color = 'red',
+            action = 'show',
+            position='top-center',
+            autoClose=  False,
+            icon = DashIconify(icon = 'iconamoon:attention-circle', width=24)
+        )

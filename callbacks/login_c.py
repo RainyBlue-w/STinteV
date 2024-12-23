@@ -15,6 +15,7 @@ from stintev.models.auth import User
 @dashapp.callback( # New session ID (sign up)
     Output('DIV_navbar_item_user-app', 'children'), # 刷新navbar sessionID 状态
     Output('app-mount', 'children'), # 刷新页面内容
+    Output('notifications-container-main', 'children'), # 提示妥善保存Session ID
     Input('BUTTON_new_session_id-app', 'n_clicks'),
 )
 def new_session_id(n_clicks):
@@ -28,6 +29,7 @@ def new_session_id(n_clicks):
         return (
             Navbar.navbar_item_user(uid), 
             pages.main.render_content(),
+            Notifications.notif_new_session_id(),
         )
 
     raise PreventUpdate

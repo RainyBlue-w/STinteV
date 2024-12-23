@@ -39,5 +39,5 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             window.dispatchEvent(new Event('resize'))
             return height
         },
-    }
+    },
 });
