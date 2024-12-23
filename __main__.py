@@ -33,4 +33,6 @@ if __name__ == "__main__":
             app,
             host = args.host,
             port = int(args.port),
+            ssl_keyfile = NetConfig.SSL_KEYFILE,
+            ssl_certfile = NetConfig.SSL_CRTFILE
         )
