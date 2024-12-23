@@ -10,7 +10,7 @@ from flask_bcrypt import Bcrypt
 
 import os
 
-from stintev.models.auth import User, User
+from stintev.models.auth import User
 from stintev.config import PathConfig, SecretConfig
 from stintev.forms import RequesetResetPwdForm, ResetPwdForm
 
@@ -71,7 +71,6 @@ def load_user(user_id):
         curr_user = User()
         curr_user.id = user_id
         return curr_user
-
 
 # upload
 

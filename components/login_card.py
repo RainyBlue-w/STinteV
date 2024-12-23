@@ -55,7 +55,6 @@ card_signin = dmc.Card(
                     rightSection=DashIconify(icon='fluent:document-signature-24-regular', width=24),
                     w=350, color='violet'
                 ),
-                html.Div(id='debug-login')
             ]
         )
     ]

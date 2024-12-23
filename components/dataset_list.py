@@ -22,7 +22,7 @@ class DatasetList:
     @staticmethod
     def alert_guest():
         return dmc.Alert(
-            'You are browsing as a guest, sign in first to use this!',
+            'You need a session ID to access private datasets!',
             title = 'Permission Denied',
             color = 'violet',
             withCloseButton=False,

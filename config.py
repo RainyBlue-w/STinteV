@@ -13,8 +13,8 @@ class RouterConfig:
     # 合法pathname列表
     VALID_PATHNAME = [
         '/', 
-        '/login',
-        '/reset-password',
+        # '/login',
+        # '/reset-password',
     ]
     
 class NetConfig:

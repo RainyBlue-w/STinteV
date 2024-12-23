@@ -28,7 +28,7 @@ class DataFilter:
                             [
                             dmc.Text('Column', className='dmc-Text-select-label-PlotPanel'),
                             dcc.Dropdown(id={'type': 'DataFilter_select_column', 'index': self._index}, clearable=True, searchable=True,
-                                        persistence=True, persistence_type='local'),
+                                        ),
                             ],
                             span=7
                         ),
@@ -36,7 +36,7 @@ class DataFilter:
                             [
                             dmc.Text('Type', className='dmc-Text-select-label-PlotPanel'),
                             dcc.Dropdown(['numeric', 'categorical'], id={'type': 'DataFilter_select_type', 'index': self._index}, 
-                                        clearable=False, searchable=False, persistence=True, persistence_type='local'),
+                                        clearable=False, searchable=False, ),
                             ],
                             span=5
                         ),

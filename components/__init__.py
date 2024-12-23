@@ -6,6 +6,9 @@ from .data_filter import DataFilter
 from .resetpwd_card import ResetpwdCard
 from . import login_card
 from .select_with_color import SelectWithColor
+from .modals import Modals
+from .notifications import Notifications
+from .navbar import Navbar
 
 __all__ = [
     'DatasetList',
@@ -15,5 +18,8 @@ __all__ = [
     'UploadPanel',
     'login_card',
     'ResetpwdCard',
-    'SelectWithColor'
+    'SelectWithColor',
+    'Modals',
+    'Notifications',
+    'Navbar'
 ]

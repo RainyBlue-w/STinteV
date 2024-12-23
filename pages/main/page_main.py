@@ -6,8 +6,6 @@ from .tab_dataset import TabDataset
 from .tab_ligand_receptor import TabLigandReceptor
 from stintev.config import PathConfig
 
-import stintev.callbacks.main_c # callbacks
-
 def render_content(
     path_data_folder: str = PathConfig.DATA_PATH,
 ):
@@ -22,12 +20,15 @@ def render_content(
             _tab_overview.tab,
             _tab_ligand_receptor.tab,
         ],
-        # active_tab = 'TAB-dataset',
-        active_tab = 'TAB-overview',
+        active_tab = 'TAB-dataset',
+        # active_tab = 'TAB-overview',
         id = 'TABS-all',
     )
     layout = html.Div(
-        _tabs
+        [
+            html.Div(id="notifications-container-main"),
+            _tabs,
+        ]
     )
     
     return layout
