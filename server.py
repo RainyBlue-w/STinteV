@@ -26,13 +26,16 @@ _stylesheets = [
     "https://unpkg.com/@mantine/nprogress@7/styles.css",
 ]
 
+_external_scripts = [
+  'https://cdnjs.cloudflare.com/ajax/libs/cookie-banner/1.2.2/cookiebanner.min.js',
+  {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'},
+]
+
 dashapp = DashProxy(
-  __name__, 
+  __name__,
+  title = 'STinteV',
   external_stylesheets=_stylesheets,
-  external_scripts = [
-    {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'},
-    # {'src': '/home/wuc/dashapps/stintev/assets/zxcvbn.js', 'type': 'module'}
-  ],
+  external_scripts = _external_scripts,
   transforms = [
     LogTransform(), ServersideOutputTransform(), MultiplexerTransform(), 
     TriggerTransform(), CycleBreakerTransform()
@@ -41,6 +44,32 @@ dashapp = DashProxy(
   requests_pathname_prefix='/',
   suppress_callback_exceptions = True,
 )
+
+dashapp.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+        <script type="text/javascript" id="cookiebanner"
+            src="https://cdn.jsdelivr.net/gh/dobarkod/cookie-banner@1.2.2/dist/cookiebanner.min.js"
+            data-height="36px" data-position="bottom" data-font-size="18px"
+            data-close-text="Got it!"
+            data-message="We use cookies to preserve your session state, by using this website you agree to our use of cookies.">
+        </script>
+    </body>
+</html>
+'''
 
 # config
 
