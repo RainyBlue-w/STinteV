@@ -4,3 +4,4 @@ dashapps.code-workspace
 testscripts/
 *.db
 tests/
+config.py

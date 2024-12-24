@@ -126,8 +126,8 @@ def upload():
 
     # 流式写出文件到指定目录
     with open(os.path.join(path_to_save, filename), 'wb') as f:
-        # 流式写出大型文件，这里的10代表10MB
-        for chunk in iter(lambda: request.files['file'].read(1024 * 1024 * 10), b''):
+        # 流式写出大型文件，这里的100代表100MB
+        for chunk in iter(lambda: request.files['file'].read(1024 * 1024 * 50), b''):
             f.write(chunk)
 
     return {'status': 'success', 'message': 'upload success', 'filename': filename}

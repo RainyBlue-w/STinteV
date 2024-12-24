@@ -17,6 +17,7 @@ from stintev.models.auth import User
     Output('app-mount', 'children'), # 刷新页面内容
     Output('notifications-container-main', 'children'), # 提示妥善保存Session ID
     Input('BUTTON_new_session_id-app', 'n_clicks'),
+    prevent_initial_call=True,
 )
 def new_session_id(n_clicks):
     

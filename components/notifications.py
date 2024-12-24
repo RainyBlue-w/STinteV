@@ -18,11 +18,11 @@ class Notifications:
     @staticmethod
     def notif_new_session_id():
         return  dmc.Notification(
-            title = 'New Session ID',
-            message= 'The session ID cannot be retrieved!! Please save it properly.',
-            color = 'red',
+            title = 'Attention',
+            message= 'Please save the session ID properly, it cannot be retrieved.',
+            color = 'orange',
             action = 'show',
             position='top-center',
-            autoClose=  False,
-            icon = DashIconify(icon = 'iconamoon:attention-circle', width=24)
+            autoClose= 10000,
+            icon = DashIconify(icon = 'line-md:alert-twotone', width=24)
         )
