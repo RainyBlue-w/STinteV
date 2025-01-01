@@ -3,6 +3,7 @@ from dash import dcc
 import dash_mantine_components as dmc
 from dash_extensions.enrich import Input, Output, State, no_update
 from dash import html
+import feffery_utils_components as fuc
 
 from flask_login import current_user
 from stintev import pages
@@ -21,6 +22,9 @@ dashapp.layout = dmc.MantineProvider(
         
         # 弹窗modal容器
         html.Div(id='modal-container'),
+        
+        # 通知notification容器
+        html.Div(id="notifications-container"),
         
         # 导航栏
         Navbar.navbar(),

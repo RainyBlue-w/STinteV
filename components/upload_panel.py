@@ -92,7 +92,7 @@ class UploadPanel:
                     id='UPLOAD_dataset-dataset',
                     locale='en-us',
                     apiUrl='/upload/',
-                    fileMaxSize=3072,
+                    fileMaxSize=5120,
                     multiple=False,
                     directory=False,
                     fileTypes = ['h5ad', 'rds'],

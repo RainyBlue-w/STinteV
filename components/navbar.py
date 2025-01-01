@@ -2,6 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from flask_login import current_user
+from dash_extensions.enrich import Output, Input, State, ClientsideFunction, clientside_callback
 
 class Navbar:
     
@@ -35,8 +36,15 @@ class Navbar:
                     ),
                     dmc.MenuDropdown(
                         [
-                            dmc.MenuItem('Have a session ID', id='BUTTON_have_session_id-app'),
-                            dmc.MenuItem('New Session ID', id='BUTTON_new_session_id-app'),
+                            dmc.MenuLabel('Session ID'),
+                            dmc.MenuItem(
+                                'Have a Session ID', id='BUTTON_have_session_id-app',
+                                leftSection=DashIconify(icon='hugeicons:id', width=20)
+                            ),
+                            dmc.MenuItem(
+                                'New Session ID', id='BUTTON_new_session_id-app',
+                                leftSection=DashIconify(icon='material-symbols:add-ad', width=20)
+                            ),
                         ]
                     )
                 ]
@@ -52,14 +60,21 @@ class Navbar:
                             leftSection=DashIconify(icon='material-symbols:ad', width=24),
                             size='md',
                             className='dmc-Button-user',
+                            id = 'BUTTON_show_session_id-app'
                         )
                     ),
                     dmc.MenuDropdown(
-                        [
-                            dmc.MenuItem('Quit session', id='BUTTON_logout-app')
-                        ]
+                        dmc.Stack(
+                            [
+                                dmc.MenuLabel('Session ID'),
+                                dmc.Text(f'{current_user.id}', className='navbar-menu-session-id'),
+                                dmc.MenuLabel('Operation'),
+                                dmc.MenuItem(
+                                    'Quit session', id='BUTTON_logout-app',
+                                    leftSection=DashIconify(icon='ci:exit', width=20),
+                                )
+                            ]
+                        )
                     )
                 ]
             )
-
-
