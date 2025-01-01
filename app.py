@@ -23,6 +23,9 @@ dashapp.layout = dmc.MantineProvider(
         # 弹窗modal容器
         html.Div(id='modal-container'),
         
+        # 通知notification容器
+        html.Div(id="notifications-container"),
+        
         # 导航栏
         Navbar.navbar(),
         

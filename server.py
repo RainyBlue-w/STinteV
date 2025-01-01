@@ -7,7 +7,7 @@ from flask_login import LoginManager, current_user
 from flask import request, url_for, redirect, flash
 from flask_mail import Mail
 from flask_bcrypt import Bcrypt
-
+from dash import Dash
 import os
 
 from stintev.models.auth import User
@@ -36,13 +36,10 @@ dashapp = DashProxy(
   title = 'STinteV',
   external_stylesheets=_stylesheets,
   external_scripts = _external_scripts,
-  transforms = [
-    LogTransform(), ServersideOutputTransform(), MultiplexerTransform(), 
-    TriggerTransform(), CycleBreakerTransform()
-  ],
   prevent_initial_callbacks=True,
   requests_pathname_prefix='/',
   suppress_callback_exceptions = True,
+  transforms=[MultiplexerTransform()]
 )
 
 dashapp.index_string = '''

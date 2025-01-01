@@ -15,12 +15,14 @@ from stintev.models.auth import User
 @dashapp.callback( # New session ID (sign up)
     Output('DIV_navbar_item_user-app', 'children'), # 刷新navbar sessionID 状态
     Output('app-mount', 'children'), # 刷新页面内容
-    Output('notifications-container-main', 'children'), # 提示妥善保存Session ID
+    Output('notifications-container', 'children'), # 提示妥善保存Session ID
     Input('BUTTON_new_session_id-app', 'n_clicks'),
+    running = [
+        (Output('notifications-container', 'children'), [], [])
+    ],
     prevent_initial_call=True,
 )
 def new_session_id(n_clicks):
-    
     if n_clicks:
         uid = shortuuid.uuid()
         User.add_one_user(uid)
@@ -63,7 +65,7 @@ def have_session_id(n_clicks):
 @dashapp.callback( # Have a Session ID (login) - Submit
     Output('DIV_navbar_item_user-app', 'children'), # 刷新navbar sessionID 状态
     Output('app-mount', 'children'), # 刷新页面内容
-    Output('notifications-container-main', 'children'), # notification, 通知登录状态
+    Output('notifications-container', 'children'), # notification, 通知登录状态
     
     Input({'type': 'MODAL_have_session_id', 'index': 'Modal'}, 'okCounts'),
     State({'type': 'MODAL_have_session_id', 'index': 'Input'}, 'value'), # 获取输入的session ID

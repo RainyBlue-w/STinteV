@@ -21,12 +21,10 @@ def render_content(
             _tab_ligand_receptor.tab,
         ],
         active_tab = 'TAB-dataset',
-        # active_tab = 'TAB-overview',
         id = 'TABS-all',
     )
     layout = html.Div(
         [
-            html.Div(id="notifications-container-main"),
             _tabs,
         ]
     )

@@ -544,7 +544,6 @@ def update_linkage_panels_select_opitons_and_value(list_uuid, list_state_value):
 @dashapp.callback( # update linkage marks
     Output({'type': 'PlotPanel_linkage_marks', 'index': ALL}, 'children'),
     Output({'type': 'PanelLinkages_icon_linkage', 'index': ALL}, 'color'),
-    Trigger('STORE_panelLinkages_linkagesCurUUID', 'data'), # triggered when add/delete linkage
     inputs={
         'all_inputs': {
             'list_types': Input({'type': 'PanelLinkages_select_type', 'index': ALL}, 'value'),
@@ -853,6 +852,7 @@ def dataFilter_generate_filter_body(
     Input({'type': 'DataFilter_numberInput_right', 'index': MATCH}, 'value'),
     Input({'type': 'DataFilter_transfer', 'index': MATCH}, 'targetKeys'),
     Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
+    prevent_initial_call=True
 )
 def dataFilter_apply_filter_store_preserved_cells(
     checked: bool,
