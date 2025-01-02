@@ -15,7 +15,7 @@ class Navbar:
                     dbc.Col(dmc.NavLink(
                         label='Documentation', variant='filled', autoContrast=True, color='dark', active=True,
                         rightSection=DashIconify(icon='hugeicons:google-doc', width=24),
-                        href='https://rainyblue-w.github.io/STinteV/',
+                        href='https://rainyblue-w.github.io/STinteV/', target='_blank'
                     ),)
                 ]),
                 dbc.NavItem(id = 'DIV_navbar_item_user-app') 
