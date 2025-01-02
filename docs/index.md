@@ -1,17 +1,5 @@
-# Welcome to MkDocs
+# About STinteV
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+​	**STinteV** (**S**patiotemporal **Inte**grative **V**iewer) is a web server designed for the visualization of aggregated spatiotemporal omics datasets.
 
-## Commands
-
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+![summary-fig](https://pic-md-1259550128.cos.ap-nanjing.myqcloud.com/summary-fig.png)

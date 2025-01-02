@@ -8,14 +8,19 @@ class Navbar:
     
     @staticmethod
     def navbar():
-        _navbar = dbc.NavbarSimple(
-            [
-                dbc.NavItem(id = 'DIV_navbar_item_user-app')
-            ],
-            brand="STinteV",
-            color="dark",
-            dark=True,
-            className='dbc-Navbar-app'
+        _navbar = dbc.Navbar(
+            dbc.Container([
+                dbc.Row([
+                    dbc.Col(dbc.NavbarBrand('STinteV', href='/', className='navbar-brand'),),
+                    dbc.Col(dmc.NavLink(
+                        label='Documentation', variant='filled', autoContrast=True, color='dark', active=True,
+                        rightSection=DashIconify(icon='hugeicons:google-doc', width=24),
+                        href='https://rainyblue-w.github.io/STinteV/',
+                    ),)
+                ]),
+                dbc.NavItem(id = 'DIV_navbar_item_user-app') 
+            ]),
+            color="#2e2e2e",
         )
         return _navbar
 

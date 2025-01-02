@@ -3,3 +3,7 @@
     overflow-wrap: break-word;
     width: 140px;
 }
+
+.navbar-brand {
+    color: white
+}
