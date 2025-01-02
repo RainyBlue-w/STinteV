@@ -51,7 +51,7 @@ class PlotPanel:
             
         chips = dmc.Stack(
             [
-                dmc.Grid(
+                dmc.Grid(                    
                     gutter=2,
                     children=[
                         dmc.GridCol(

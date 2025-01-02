@@ -1,3 +1,9 @@
 site_name: STinteV
+site_description: STinteV - a web server for aggregated spatiotemporal omics data visualization.
 theme:
   name: material
+nav:
+- Home: index.md
+- Tutorials:
+  - Getting started: getting_started.md
+  - Data management: data_management.md

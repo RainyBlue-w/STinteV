@@ -1,3 +1,7 @@
+.navbar-main {
+    height: 6vh
+}
+
 .navbar-menu-session-id {
     font-size: 16px;
     overflow-wrap: break-word;

@@ -9,18 +9,40 @@ class Navbar:
     @staticmethod
     def navbar():
         _navbar = dbc.Navbar(
-            dbc.Container([
+            children=dbc.Container([
                 dbc.Row([
-                    dbc.Col(dbc.NavbarBrand('STinteV', href='/', className='navbar-brand'),),
-                    dbc.Col(dmc.NavLink(
-                        label='Documentation', variant='filled', autoContrast=True, color='dark', active=True,
-                        rightSection=DashIconify(icon='hugeicons:google-doc', width=24),
-                        href='https://rainyblue-w.github.io/STinteV/', target='_blank'
-                    ),)
-                ]),
-                dbc.NavItem(id = 'DIV_navbar_item_user-app') 
+                    dbc.Col(
+                        dmc.Image(
+                            src='https://pic-md-1259550128.cos.ap-nanjing.myqcloud.com/stintev-logo.svg',
+                            style={'zoom': '120%'}
+                        )
+                    ),
+                    dbc.Col(
+                        dmc.NavLink(
+                            label='Documentation', variant='filled', autoContrast=True, color='dark', active=True,
+                            rightSection=DashIconify(icon='hugeicons:google-doc', width=24),
+                            href='https://rainyblue-w.github.io/STinteV/', target='_blank'
+                        ),     
+                    )
+                ], align='center'),
+                dbc.Row([
+                    dbc.Col(
+                        dbc.NavItem(id = 'DIV_navbar_item_user-app'),  
+                    ),
+                    dbc.Col(
+                        dmc.Anchor(
+                            dmc.ActionIcon(
+                                DashIconify(icon='mdi:github', width=24), 
+                                variant='transparent', color='white', autoContrast=True,
+                                className = 'navbar-ActionIcon'
+                            ),
+                            href='https://github.com/RainyBlue-w/STinteV', target='_blank',
+                        )
+                    ),
+                ], align='center')
             ]),
             color="#2e2e2e",
+            className = 'navbar-main'
         )
         return _navbar
 
