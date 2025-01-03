@@ -9,5 +9,6 @@ nav:
   - Data management: data_management.md
   - Plot panels: plot_panels.md
   - Panel linkages: panel_linkages.md
+- Examples:
   - "Example 1: 2D visualization": example1_2dVisualization.md
   - "Example 2: 3D visualization": example2_3dVisualization.md
