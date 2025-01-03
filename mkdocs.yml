@@ -1,7 +1,14 @@
 site_name: STinteV
 site_description: STinteV - a web server for aggregated spatiotemporal omics data visualization.
+
+repo_name: STinteV
+repo_url: https://github.com/RainyBlue-w/STinteV
+
 theme:
   name: material
+  icon:
+    repo: fontawesome/brands/github
+
 nav:
 - Home: index.md
 - Tutorials:
@@ -12,3 +19,4 @@ nav:
 - Examples:
   - Example 1 - 2D visualization: example1_2dVisualization.md
   - Example 2 - 3D visualization: example2_3dVisualization.md
+
