@@ -566,7 +566,7 @@ def apply_linkage(all_inputs):
             }, 
             {
                 'id': {'index': '547bc360435011efab683cecef387085', 'type': 'PanelLinkages_select_type'}, 
-                'property': 'value', 'value': ['column', 'view'], 
+                'property': 'value', 'value': ['column', '3D view'], 
                 'str_id': '{"index":"547bc360435011efab683cecef387085","type":"PanelLinkages_select_type"}', 
                 'triggered': False
             }
@@ -730,7 +730,7 @@ def update_linked_panels_sample(
                 if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
                     continue
                 
-                if 'view' in type and len(panels) >= 2: # view
+                if '3D view' in type and len(panels) >= 2: # view
                     view_to_set = relayoutDatas[panel_order]
                     for i,uid in enumerate(plotPanel_uuids):
                         if uid in panels and uid != tid['index']:

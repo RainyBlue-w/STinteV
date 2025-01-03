@@ -15,4 +15,3 @@
 ## Share with others
 
 ​	You could share your **session id** with others, then they can get the same privileges as you with the session id.
-

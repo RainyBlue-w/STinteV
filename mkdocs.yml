@@ -7,3 +7,4 @@ nav:
 - Tutorials:
   - Getting started: getting_started.md
   - Data management: data_management.md
+  - Plot panels: plot_panels.md

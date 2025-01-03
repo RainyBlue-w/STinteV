@@ -46,8 +46,6 @@ class TabOverview():
             PlotPanel(index=uuid.uuid1().hex),
         ]
 
-
-
         self._store = html.Div(
             [
                 dcc.Store(
@@ -76,7 +74,7 @@ class TabOverview():
                                     dmc.GridCol(
                                         dmc.NumberInput(
                                             label = 'Point size',
-                                            # description = 'Size of the points in scatter plot',
+                                            description = 'Size of the points in all the panels',
                                             id='NUMBERINPUT_scatter3dPointsize_3D',
                                             value=2, step=0.5, min=0.1,
                                             persistence='local',
@@ -138,7 +136,7 @@ class TabOverview():
         self.control_linkage = dmc.AccordionItem(
             children=[
                 dmc.AccordionControl(
-                    dmc.Text('Linkages', className='dmc-Text-accordionControl'),
+                    dmc.Text('Panel linkages', className='dmc-Text-accordionControl'),
                 ),
                 dmc.AccordionPanel(
                     PanelLinkages.linkage_settings()
