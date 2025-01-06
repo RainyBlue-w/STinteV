@@ -20,3 +20,12 @@ nav:
   - Example 1 - 2D visualization: example1_2dVisualization.md
   - Example 2 - 3D visualization: example2_3dVisualization.md
 
+# Document dates
+plugins:
+  - git-revision-date-localized:
+      enabled: true
+      enable_creation_date: true
+      type: date
+
+extra:
+  homepage: https://stintev.site/

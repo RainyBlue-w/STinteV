@@ -24,7 +24,7 @@ if __name__ == "__main__":
         dashapp.run_server(
             host = args.host,
             port = int(args.port),
-            debug = True,
+            debug = False,
         )
     else:
         app = FastAPI()
