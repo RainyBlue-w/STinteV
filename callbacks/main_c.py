@@ -506,7 +506,7 @@ def update_PlotPanel_column_options(info, path_sample):
 )
 def update_PlotPanel_figure(
     column: str, 
-    id: str, 
+    id: dict, 
     embedding: str, 
     path_sample: str, 
     info: str, 
