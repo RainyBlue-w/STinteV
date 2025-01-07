@@ -9,7 +9,7 @@ import anndata
 import os
 from fastapi import background
 import numpy as np
-from typing import List, Literal
+from typing import List, Literal, Dict
 from flask_login import current_user
 
 from stintev.config import PathConfig
@@ -17,6 +17,7 @@ from stintev.utils._plot import plot_feature_embedding, plot_metadata_embedding
 from stintev.components import PlotPanel, DatasetList, PanelLinkages, DataFilter
 from stintev.server import dashapp
 from stintev.utils._io import user_rds_path, parse_rds, convert_to_h5ad, delete_relate_tmpFiles
+from stintev.utils._plot import assign_colors
 
 #region update overview-grid layout
 
@@ -401,6 +402,42 @@ def load_choosen_datasets(
 
 #endregion
 
+#region global colormap
+
+@dashapp.callback( # update global colormap
+    Output('STORE_global_cmap-overview', 'data'),
+    Input({'type': 'PlotPanel_item_select_column', 'index': ALL}, 'value'),
+    State({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
+    State({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
+    State('STORE_global_cmap-overview', 'data'),
+    State('STORE_plotPanelsCurUUID-overview', 'data'),
+)
+def update_global_cmap(
+    column: List[str], info: List[str], 
+    path_sample: List[str], global_cmap: Dict,
+    uuid_list: List[str]
+):
+    
+    # 同时只会有一个PlotPanel触发，如果有多个触发，说明是linkage触发，则只处理第一个
+    if isinstance(ctx.triggered_id, list):
+        t_id = ctx.triggered_id[0]['index']
+    else:
+        t_id = ctx.triggered_id['index']
+    t_index = uuid_list.index(t_id)
+    
+    adata = anndata.read_h5ad(
+        path_sample[t_index], backed='r'
+    )
+    
+    if info[t_index] == 'metadata' and column[t_index]:
+        categories = adata.obs[column[t_index]].unique().tolist()
+        global_cmap = assign_colors(categories, global_cmap)
+        
+        return global_cmap
+
+    raise PreventUpdate
+#endregion
+
 #region update PlotPanel
 clientside_callback( # update PlotPanel display_idx
     ClientsideFunction(
@@ -464,9 +501,18 @@ def update_PlotPanel_column_options(info, path_sample):
     Input({'type': 'PlotPanel_item_select_sample', 'index': MATCH}, 'value'),
     Input({'type': 'PlotPanel_item_select_info', 'index': MATCH}, 'value'),
     Input({'type': 'DataFilter_store_preserved_cells', 'index': MATCH}, 'data'),
+    Input('STORE_global_cmap-overview', 'data'),
     prevent_initial_call=True
 )
-def update_PlotPanel_figure(column, id, embedding, path_sample, info, preserved_cells):
+def update_PlotPanel_figure(
+    column: str, 
+    id: str, 
+    embedding: str, 
+    path_sample: str, 
+    info: str, 
+    preserved_cells: list[str],
+    global_cmap: Dict
+):
     
     adata = anndata.read_h5ad(
         path_sample, backed='r'
@@ -483,13 +529,13 @@ def update_PlotPanel_figure(column, id, embedding, path_sample, info, preserved_
         curCategories = None
         categoriesLegend = []
     elif info == 'metadata' and column and embedding and path_sample and info:
-        figure = plot_metadata_embedding(adata, preserved_cells, column, embedding)
+        figure = plot_metadata_embedding(adata, preserved_cells, column, embedding, global_cmap['cmap'])
         tmp_curCategories = adata.obs.loc[preserved_cells, column].unique()
         traceNumber = len(tmp_curCategories)
         curCategories = [cat for cat in adata.obs[column].cat.categories.to_list() if cat in tmp_curCategories]
         categoriesLegend = PlotPanel.categoriesLegend(
             curCategories,  # order of px-legend, px-traces are all defined by series.cat.categories
-            index = index, cmap=None
+            index = index, cmap=global_cmap['cmap']
         )
     else:
         raise PreventUpdate

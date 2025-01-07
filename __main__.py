@@ -13,6 +13,7 @@ if __name__ == "__main__":
     parser.add_argument('--host', default='0.0.0.0', required=False, help='Host to run the app on')
     parser.add_argument('--port', default=443, required=False, help='Port to run the app on')
     parser.add_argument('--init-db', action='store_true', help='Initialize the database')
+    parser.add_argument('--dev', action='store_true', help='Run the app in dev mode')
     parser.add_argument('--debug', action='store_true', help='Run the app in debug mode')
     args = parser.parse_args()
     
@@ -20,11 +21,12 @@ if __name__ == "__main__":
         from stintev.models.init_db import init_db
         init_db()
         
-    elif args.debug:
+    elif args.dev:
         dashapp.run_server(
             host = args.host,
             port = int(args.port),
-            debug = False,
+            debug = args.debug,
+            use_reloader = False,
         )
     else:
         app = FastAPI()

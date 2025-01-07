@@ -52,7 +52,10 @@ class TabOverview():
                     id='STORE_plotPanelsCurUUID-overview', 
                     data = [self._init_plot_panels[i]._index for i in range( self._n_init_plot_panels )]
                 ),
-                dcc.Store(id='STORE_global_cmap-overview')
+                dcc.Store(
+                    id = 'STORE_global_cmap-overview', storage_type = 'local',
+                    data = {'i': 0, 'cmap': {}}
+                ),
             ]
         )
 
