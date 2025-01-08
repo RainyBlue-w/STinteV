@@ -14,7 +14,7 @@ from flask_login import current_user
 
 from stintev.config import PathConfig
 from stintev.utils._plot import plot_feature_embedding, plot_metadata_embedding
-from stintev.components import PlotPanel, DatasetList, PanelLinkages, DataFilter
+from stintev.components import PlotPanel, DatasetList, PanelLinkages, DataFilter, Notifications
 from stintev.server import dashapp
 from stintev.utils._io import user_rds_path, parse_rds, convert_to_h5ad, delete_relate_tmpFiles
 from stintev.utils._plot import assign_colors
@@ -534,7 +534,11 @@ def update_PlotPanel_figure(
 
         if adata.obs[column].dtypes in ['category', 'object']:
             if adata.obs[column].unique().size > 100:
-                raise PreventUpdate # notification
+                # set_props(
+                #     'notifications-container',
+                #     {'children': Notifications.notif_metadata_category_max()}
+                # )
+                raise PreventUpdate
             else:
                 tmp_curCategories = adata[preserved_cells].obs[column].unique()
                 traceNumber = len(tmp_curCategories)

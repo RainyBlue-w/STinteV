@@ -21,3 +21,12 @@ class Notifications:
             placement='top',
             type='info'
         )
+        
+    @staticmethod
+    def notif_metadata_category_max():
+        return fac.Notification(
+            message='Too many categories',
+            description='The number of categories in metadata exceeds the maximum limit (100).',
+            placement='top',
+            type='error'
+        )
