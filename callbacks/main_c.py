@@ -432,7 +432,7 @@ def update_global_cmap(
     if info[t_index] == 'metadata' and column[t_index]:
         categories = adata.obs[column[t_index]].unique().tolist()
         global_cmap = assign_colors(categories, global_cmap)
-        
+
         return global_cmap
 
     raise PreventUpdate
@@ -530,12 +530,15 @@ def update_PlotPanel_figure(
         categoriesLegend = []
     elif info == 'metadata' and column and embedding and path_sample and info:
         figure = plot_metadata_embedding(adata, preserved_cells, column, embedding, global_cmap['cmap'])
-        tmp_curCategories = adata.obs.loc[preserved_cells, column].unique()
+        tmp_curCategories = adata[preserved_cells].obs[column].unique()
         traceNumber = len(tmp_curCategories)
-        curCategories = [cat for cat in adata.obs[column].cat.categories.to_list() if cat in tmp_curCategories]
+        if adata.obs[column].dtypes == 'category':
+            curCategories = [cat for cat in adata.obs[column].cat.categories.to_list() if cat in tmp_curCategories]
+        else:
+            curCategories = list(tmp_curCategories)
         categoriesLegend = PlotPanel.categoriesLegend(
             curCategories,  # order of px-legend, px-traces are all defined by series.cat.categories
-            index = index, cmap=global_cmap['cmap']
+            index = index, cmap = global_cmap['cmap']
         )
     else:
         raise PreventUpdate
