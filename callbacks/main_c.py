@@ -1,5 +1,5 @@
 from dash_extensions.enrich import callback, Output, Input, State, Serverside, html, no_update, Trigger
-from dash import clientside_callback, ClientsideFunction, ALL, MATCH, Patch, ctx
+from dash import clientside_callback, ClientsideFunction, ALL, MATCH, Patch, ctx, set_props
 from dash.exceptions import PreventUpdate
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
@@ -410,14 +410,13 @@ def load_choosen_datasets(
     State({'type': 'PlotPanel_item_select_info', 'index': ALL}, 'value'),
     State({'type': 'PlotPanel_item_select_sample', 'index': ALL}, 'value'),
     State('STORE_global_cmap-overview', 'data'),
-    State('STORE_plotPanelsCurUUID-overview', 'data'),
+    State('STORE_plotPanelsCurUUID-overview', 'data')
 )
 def update_global_cmap(
     column: List[str], info: List[str], 
     path_sample: List[str], global_cmap: Dict,
     uuid_list: List[str]
 ):
-    
     # 同时只会有一个PlotPanel触发，如果有多个触发，说明是linkage触发，则只处理第一个
     if isinstance(ctx.triggered_id, list):
         t_id = ctx.triggered_id[0]['index']
@@ -429,10 +428,14 @@ def update_global_cmap(
         path_sample[t_index], backed='r'
     )
     
-    if info[t_index] == 'metadata' and column[t_index]:
+    if ( 
+        info[t_index] == 'metadata' and 
+        column[t_index] and 
+        adata.obs[column[t_index]].dtypes in ['category', 'object']
+    ):
         categories = adata.obs[column[t_index]].unique().tolist()
-        global_cmap = assign_colors(categories, global_cmap)
-
+        if len(categories) < 100:
+            global_cmap = assign_colors(categories, global_cmap)
         return global_cmap
 
     raise PreventUpdate
@@ -513,7 +516,6 @@ def update_PlotPanel_figure(
     preserved_cells: list[str],
     global_cmap: Dict
 ):
-    
     adata = anndata.read_h5ad(
         path_sample, backed='r'
     )
@@ -529,16 +531,29 @@ def update_PlotPanel_figure(
         curCategories = None
         categoriesLegend = []
     elif info == 'metadata' and column and embedding and path_sample and info:
-        figure = plot_metadata_embedding(adata, preserved_cells, column, embedding, global_cmap['cmap'])
-        tmp_curCategories = adata[preserved_cells].obs[column].unique()
-        traceNumber = len(tmp_curCategories)
-        if adata.obs[column].dtypes == 'category':
-            curCategories = [cat for cat in adata.obs[column].cat.categories.to_list() if cat in tmp_curCategories]
+
+        if adata.obs[column].dtypes in ['category', 'object']:
+            if adata.obs[column].unique().size > 100:
+                raise PreventUpdate # notification
+            else:
+                tmp_curCategories = adata[preserved_cells].obs[column].unique()
+                traceNumber = len(tmp_curCategories)
+                if adata.obs[column].dtypes == 'category':
+                    curCategories = [cat for cat in adata.obs[column].cat.categories.to_list() if cat in tmp_curCategories]
+                else:
+                    curCategories = list(tmp_curCategories)
+                categoriesLegend = PlotPanel.categoriesLegend(
+                    curCategories,  # order of px-legend, px-traces are all defined by series.cat.categories
+                    index = index, cmap = global_cmap['cmap']
+                )
         else:
-            curCategories = list(tmp_curCategories)
-        categoriesLegend = PlotPanel.categoriesLegend(
-            curCategories,  # order of px-legend, px-traces are all defined by series.cat.categories
-            index = index, cmap = global_cmap['cmap']
+            categoriesLegend = []
+            traceNumber = no_update
+            curCategories = no_update
+            
+        figure = plot_metadata_embedding(
+            adata, preserved_cells, column, embedding, 
+            color_discrete_map = global_cmap['cmap']
         )
     else:
         raise PreventUpdate
@@ -719,7 +734,7 @@ def update_linked_panels_sample(
         raise PreventUpdate # 暂时
     elif tid and 'type' in tid and tid['type'].startswith('PlotPanel_'): 
         # PlotPanel select改动触发
-        if not any(linkages_apply): # 至少有linkage再执行
+        if not any(linkages_apply): # 至少有linkage在执行
             raise PreventUpdate
         
         return_samples = [no_update]*len(plotPanel_uuids)

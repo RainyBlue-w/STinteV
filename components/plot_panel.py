@@ -59,6 +59,7 @@ class PlotPanel:
                                 icon=DashIconify(icon='system-uicons:reverse', width=16),
                                 variant='filled', color='default', block=True,
                                 id = {'type': 'PlotPanel_item_controlChip_invert', 'index': index},
+                                className = 'PlotPanel-legend-button'
                             ),
                             span=4
                         ),
@@ -67,6 +68,7 @@ class PlotPanel:
                                 icon=DashIconify(icon='fluent:border-none-20-regular', width=16),
                                 variant='filled', color='default', block=True,
                                 id = {'type': 'PlotPanel_item_controlChip_clear', 'index': index},
+                                className = 'PlotPanel-legend-button'
                             ),
                             span=4,
                         ),
@@ -75,12 +77,17 @@ class PlotPanel:
                                 icon=DashIconify(icon='fluent:checkbox-indeterminate-20-regular', width=16),
                                 variant='filled', color='default', block=True,
                                 id = {'type': 'PlotPanel_item_controlChip_all', 'index': index},
+                                className = 'PlotPanel-legend-button'
                             ),
                             span=4
                         ),
                         html.Div(
                             [
-                                dbc.Tooltip( i.capitalize(), target={'type': f'PlotPanel_item_controlChip_{i}', 'index': index}, placement='top')
+                                dbc.Tooltip( 
+                                    i.capitalize(), 
+                                    target={'type': f'PlotPanel_item_controlChip_{i}', 'index': index}, 
+                                    placement='top', delay={'show':0, 'hide':0}
+                                )
                                 for i in ['invert', 'clear', 'all']
                             ],
                         ),
@@ -303,7 +310,7 @@ class PlotPanel:
                             style = {'height': f'{self._height_plot_panel_item}px'},
                         ),
                         id = {'type': 'PlotPanel_item_graph_leftCol', 'index': self._index},
-                        span=9
+                        span='auto',
                     ),
                     # legend
                     dmc.GridCol(
@@ -312,7 +319,8 @@ class PlotPanel:
                             style={'height': f'{self._height_plot_panel_item}px', 'overflow-y': 'auto'}
                         ),
                         id = {'type': 'PlotPanel_item_graph_rightCol', 'index': self._index},
-                        span=3
+                        span='content',
+                        className = 'PlotPanel-item-graph-rightCol'
                     )
                 ],
             )
@@ -402,19 +410,4 @@ def controlChip_invert_clear_all(nClicks_invert, nClicks_clear, nClicks_all, sel
     elif tid['type'] == 'PlotPanel_item_controlChip_all' and nClicks_all:
         return curCategories
     
-    raise PreventUpdate
-
-# clientside
-@callback( # update GridCol span on info type (feature/metadata) changed
-    Output({'type': 'PlotPanel_item_graph_leftCol', 'index': MATCH}, 'span'),
-    Output({'type': 'PlotPanel_item_graph_rightCol', 'index': MATCH}, 'span'),
-    Input({'type': 'PlotPanel_item_select_info', 'index': MATCH}, 'value'),
-)
-def update_gridCol_span_on_infoType_changed(info_type):
-    
-    if info_type == 'feature':
-        return 'auto', 'content'
-    elif info_type == 'metadata':
-        return 9, 3
-
     raise PreventUpdate
