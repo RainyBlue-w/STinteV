@@ -165,8 +165,10 @@ def _plot_metadata_embedding_3d(
     preserved_cells: List,
     column: str,
     embedding: str,
+    color_continuous_scale: List = [ (0.00, "#F4F4F4"), (0.05, "#F4F4F4"), (1.00, "#225EA8") ],
     color_discrete_map: Dict | None = None,
     marker_size: float = 2.0,
+    column_type: Literal['categorical', 'continuous'] | None = None,
     **kws
 ) -> go.Figure:
     
@@ -183,6 +185,7 @@ def _plot_metadata_embedding_3d(
         data_frame = pdf,
         x = 'X', y = 'Y', z='Z', color = column,
         color_discrete_map = color_discrete_map,
+        color_continuous_scale = color_continuous_scale,
         **kws
     )
     plot.update_traces(marker_size=marker_size, marker_opacity=1)
@@ -190,7 +193,6 @@ def _plot_metadata_embedding_3d(
       margin=dict(l=0, r=0, t=0, b=0),
       plot_bgcolor = '#ffffff', 
       uirevision='constant',
-      legend_itemsizing = 'constant',
       coloraxis = {
         'colorbar' : {'tickformat': '4.2f'}
       },
@@ -206,6 +208,25 @@ def _plot_metadata_embedding_3d(
           aspectmode = 'cube'
       )
     )
+    if not column_type:
+        if pdf[column].dtypes in ['category', 'object']:
+            column_type = 'categorical'
+        else:
+            column_type = 'continuous'
+    if column_type == 'continuous':
+        plot.update_layout(
+            legend=dict(
+                title='',
+                orientation='v',
+                yanchor='middle',
+                xanchor='right',  # 设置图例在右侧
+                y=0.5, x=1,  # 调整图例在横向的位置
+                itemsizing='constant'
+            )
+        )
+    else:
+        plot.update_layout(showlegend = False)
+    
 
     return plot
 
