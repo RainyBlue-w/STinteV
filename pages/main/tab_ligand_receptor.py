@@ -351,7 +351,7 @@ def update_embedding_lr_options(sample):
         ( Output({'type': 'SelectWithColor_select', 'index': 'SELECTWITHCOLOR_receptor-LR'}, 'disabled'), True, False, ) 
     ],
     prevent_initial_call=True,
-    on_error = TabLigandReceptor.error_handler,
+    # on_error = TabLigandReceptor.error_handler,
 )
 def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
 
