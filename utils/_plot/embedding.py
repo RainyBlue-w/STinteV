@@ -85,7 +85,7 @@ def plot_metadata_embedding(
     elif adata.obsm[embedding].shape[1] == 3:
         plot = _plot_metadata_embedding_3d(
             adata, preserved_cells, column, embedding, 
-            marker_size=marker_size, color_discrete_sequence=color_discrete_map, **kws
+            marker_size=marker_size, color_discrete_map=color_discrete_map, **kws
         )
     else:
         raise ValueError(f"The embedding '{embedding}' seems to be neither 2D nor 3D")
@@ -165,7 +165,7 @@ def _plot_metadata_embedding_3d(
     preserved_cells: List,
     column: str,
     embedding: str,
-    cmap: Dict | None = None,
+    color_discrete_map: Dict | None = None,
     marker_size: float = 2.0,
     **kws
 ) -> go.Figure:
@@ -182,7 +182,7 @@ def _plot_metadata_embedding_3d(
     plot = px.scatter_3d(
         data_frame = pdf,
         x = 'X', y = 'Y', z='Z', color = column,
-        color_discrete_map = cmap,
+        color_discrete_map = color_discrete_map,
         **kws
     )
     plot.update_traces(marker_size=marker_size, marker_opacity=1)
