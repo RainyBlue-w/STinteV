@@ -14,7 +14,6 @@ from stintev.models.auth import User
 
 from stintev.callbacks import login_c, main_c
 
-
 dashapp.layout = dmc.MantineProvider(
     [
         # url监听
@@ -24,6 +23,7 @@ dashapp.layout = dmc.MantineProvider(
         html.Div(id='modal-container'),
         
         # 通知notification容器
+        dmc.NotificationProvider(),
         html.Div(id="notifications-container"),
         
         # 导航栏

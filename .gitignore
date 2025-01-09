@@ -5,3 +5,4 @@ testscripts/
 *.db
 tests/
 config.py
+environ.sh

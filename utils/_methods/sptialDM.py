@@ -28,3 +28,5 @@ def calc_spatialDM(
         stats[pair]['z'] = adata.uns['global_res'].loc[pair,'z']
         stats[pair]['fdr'] = adata.uns['global_res'].loc[pair,'fdr']
         stats = pd.concat(stats)
+        
+        

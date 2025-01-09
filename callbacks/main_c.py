@@ -3,6 +3,7 @@ from dash import clientside_callback, ClientsideFunction, ALL, MATCH, Patch, ctx
 from dash.exceptions import PreventUpdate
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
+import feffery_antd_components.alias as fac
 import dash
 
 import anndata
@@ -505,7 +506,8 @@ def update_PlotPanel_column_options(info, path_sample):
     Input({'type': 'PlotPanel_item_select_info', 'index': MATCH}, 'value'),
     Input({'type': 'DataFilter_store_preserved_cells', 'index': MATCH}, 'data'),
     Input('STORE_global_cmap-overview', 'data'),
-    prevent_initial_call=True
+    prevent_initial_call=True,
+    background=True,
 )
 def update_PlotPanel_figure(
     column: str, 
@@ -516,28 +518,38 @@ def update_PlotPanel_figure(
     preserved_cells: list[str],
     global_cmap: Dict
 ):
-    adata = anndata.read_h5ad(
-        path_sample, backed='r'
-    )
+    
+    try:
+        adata = anndata.read_h5ad(
+            path_sample, backed='r'
+        )
+    except:
+        raise PreventUpdate
     
     index = id['index']
     
     if preserved_cells is None or len(preserved_cells) < 1:
         preserved_cells = adata.obs_names
     
-    if info == 'feature' and column and embedding and path_sample and info:
+    if info and info == 'feature' and column and embedding and path_sample:
         figure = plot_feature_embedding(adata, preserved_cells, column, embedding)
         traceNumber = 1
-        curCategories = None
+        curCategories = []
         categoriesLegend = []
-    elif info == 'metadata' and column and embedding and path_sample and info:
-
+    elif info and info == 'metadata' and column and embedding and path_sample:
         if adata.obs[column].dtypes in ['category', 'object']:
             if adata.obs[column].unique().size > 100:
-                # set_props(
-                #     'notifications-container',
-                #     {'children': Notifications.notif_metadata_category_max()}
-                # )
+                set_props(
+                    'notifications-container',
+                    {
+                        'children': fac.Notification(
+                            message='Too many categories',
+                            description='The number of categories in metadata exceeds the maximum limit (100).',
+                            placement='top',
+                            type='error'
+                        ),
+                    }
+                )
                 raise PreventUpdate
             else:
                 tmp_curCategories = adata[preserved_cells].obs[column].unique()

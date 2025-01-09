@@ -26,6 +26,7 @@ def render_content(
     layout = html.Div(
         [
             _tabs,
+            html.Div(id='notifications-container-main')
         ]
     )
     

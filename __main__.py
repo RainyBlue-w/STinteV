@@ -22,7 +22,8 @@ if __name__ == "__main__":
         init_db()
         
     elif args.dev:
-        dashapp.run_server(
+        dashapp.register_celery_tasks()
+        dashapp.run(
             host = args.host,
             port = int(args.port),
             debug = args.debug,

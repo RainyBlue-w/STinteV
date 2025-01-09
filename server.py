@@ -2,17 +2,53 @@ import dash._dash_renderer
 import dash_bootstrap_components as dbc
 from dash_extensions.enrich import DashProxy, LogTransform, ServersideOutputTransform
 from dash_extensions.enrich import MultiplexerTransform, TriggerTransform, CycleBreakerTransform
+from dash_extensions.enrich import RedisCache, FileSystemCache, RedisBackend
 
+from flask import Flask
 from flask_login import LoginManager, current_user
-from flask import request, url_for, redirect, flash
+from flask import request
 from flask_mail import Mail
-from flask_bcrypt import Bcrypt
-from dash import Dash
 import os
+from uuid import uuid4
 
 from stintev.models.auth import User
-from stintev.config import PathConfig, SecretConfig
+from stintev.config import *
 from stintev.forms import RequesetResetPwdForm, ResetPwdForm
+from stintev.components import Notifications
+
+from dash import DiskcacheManager, CeleryManager
+import diskcache
+
+launch_uid = uuid4()
+
+if BackendConfig.BACKGROUND_CALLBACK_ON:
+    from celery import Celery
+    celery_app = Celery(
+        __name__, 
+        broker=f'redis://:{SecretConfig.REDIS_PASSWORD}@{RedisConfig.HOST}:{RedisConfig.PORT}/0', 
+        backend=f'redis://:{SecretConfig.REDIS_PASSWORD}@{RedisConfig.HOST}:{RedisConfig.PORT}/0'
+    )
+    print(celery_app)
+    background_callback_manager = CeleryManager(
+        celery_app, 
+        # cache_by=[lambda: launch_uid], expire=CeleryConfig.EXPIRE_TIME
+    ) # Don't expire for current user for 24 hours
+else:
+    # Diskcache for non-production apps when developing locally
+    import diskcache
+    cache = diskcache.Cache(PathConfig.CACHE_PATH)
+    background_callback_manager = DiskcacheManager(
+        # cache, cache_by=[lambda: launch_uid], expire=60*60
+    ) # Don't expire for current user for 1 hours
+
+if BackendConfig.DASH_EXTENSIONS_ON:
+    dash_extensions_backend = RedisBackend(
+        host=RedisConfig.HOST, 
+        port=RedisConfig.PORT, 
+        password=SecretConfig.REDIS_PASSWORD
+    )
+else:
+    dash_extensions_backend = FileSystemCache(cache_dir=PathConfig.CACHE_PATH)
 
 dash._dash_renderer._set_react_version('18.2.0') # needed for dash_mantine_components v0.14
 
@@ -31,6 +67,9 @@ _external_scripts = [
   {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'},
 ]
 
+# flask server
+server = Flask(__name__)
+
 dashapp = DashProxy(
   __name__,
   title = 'STinteV',
@@ -39,7 +78,9 @@ dashapp = DashProxy(
   prevent_initial_callbacks=True,
   requests_pathname_prefix='/',
   suppress_callback_exceptions = True,
-  transforms=[MultiplexerTransform()]
+  transforms=[MultiplexerTransform(), ServersideOutputTransform(backends=[dash_extensions_backend])],
+  background_callback_manager=background_callback_manager,
+  on_error = Notifications.handle_global_error
 )
 
 dashapp.index_string = '''
