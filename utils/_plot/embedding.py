@@ -240,6 +240,7 @@ def _plot_embedding_2d(
     sort: bool = True,
     marker_size: float = 2.0,
     column_type: Literal['categorical', 'continuous'] | None = None,
+    legend_title: str | None = None,
     **kws
 ) -> go.Figure:
     
@@ -262,6 +263,10 @@ def _plot_embedding_2d(
             by=column, 
             ascending = (True if column_type == 'continuous' else False)
         ) # 连续值按数值大小降序，离散值按字典序升序
+    
+    if legend_title:
+        pdf.rename(columns={column: legend_title})
+        column = legend_title
     
     if column_type == 'continuous':
         plot = px.scatter(

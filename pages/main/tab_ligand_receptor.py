@@ -35,10 +35,9 @@ class TabLigandReceptor():
         set_props(
             'notifications-container',
             {
-                "children": dmc.Notification(
-                    title = 'Input Error!',
-                    action = 'show',
-                    message = f'ligand or receptor is empty'
+                "children": fac.Message(
+                    content = f'error:{e}',
+                    type = 'error',
                 )
             }
         )
@@ -368,15 +367,13 @@ def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
     '''
 
     if sample is None or embedding is None:
-        raise PreventUpdate
+        raise Exception('sample or embedding empty')
 
     adata = anndata.read_h5ad(
         sample, backed=False
     )
 
     tid = ctx.triggered_id
-
-
 
     plot_ligand = no_update
     plot_receptor = no_update
@@ -414,22 +411,24 @@ def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
                 single_cell=False,
                 embedding=embedding
             )
+            adata.obs['corr'] = corr
             plot_correlation = plot_feature_embedding(
                 adata = adata,
                 preserved_cells=adata.obs_names.to_list(),
-                feature = corr,
+                feature = 'corr',
                 embedding=embedding,
                 legend_title=f'{ligand}-{receptor}',
-                cmap = [
+                color_continuous_scale = [
                     (0.00, "#3D739C"),
                     (0.5, "#F4F4F4"),
                     (1.00, "#c85863"),
-                ],
+                ]
             )
         else:
             raise Exception('ligand or receptor empty')
 
-    return [plot_ligand, plot_receptor, plot_correlation]
+    output = [plot_ligand, plot_receptor, plot_correlation]
+    return output
 
 # sync camera between plots
 @callback(
