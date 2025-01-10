@@ -552,7 +552,7 @@ def update_PlotPanel_figure(
                 )
                 raise PreventUpdate
             else:
-                tmp_curCategories = adata[preserved_cells].obs[column].unique()
+                tmp_curCategories = adata[preserved_cells].obs[column].sort_values().unique()
                 traceNumber = len(tmp_curCategories)
                 if adata.obs[column].dtypes == 'category':
                     curCategories = [cat for cat in adata.obs[column].cat.categories.to_list() if cat in tmp_curCategories]
