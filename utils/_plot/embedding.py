@@ -261,8 +261,8 @@ def _plot_embedding_2d(
     if sort is True:
         pdf = pdf.sort_values(
             by=column, 
-            ascending = (True if column_type == 'continuous' else False)
-        ) # 连续值按数值大小降序，离散值按字典序升序
+            ascending = True
+        )
     
     if legend_title:
         pdf.rename(columns={column: legend_title})
