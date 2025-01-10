@@ -9,4 +9,4 @@
   2. We could highlight the same group(s) of cells in these samples. Because samples in example are from different stage, it means we have observed how specific cell types changed over time.
   3. We can also check other items in metadata, or other genes in these samples at a time.
 
-![image-20250103164601308](https://pic-md-1259550128.cos.ap-nanjing.myqcloud.com/image-20250103164601308.png)
+![image-20250110180451684](https://pic-md-1259550128.cos.ap-nanjing.myqcloud.com/image-20250110180451684.png)
