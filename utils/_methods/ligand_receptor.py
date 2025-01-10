@@ -5,7 +5,7 @@ import pandas as pd
 import importlib.resources as res
 
 def bivariate_spatial_association(
-    adata: anndata.AnnData,
+    adata_path: str,
     ligand: str,
     receptor: str,
     embedding: str = 'spatial',
@@ -17,6 +17,9 @@ def bivariate_spatial_association(
     method: Literal['z-score', 'permutation'] = 'z-score',
 ) -> List:
     
+    adata = anndata.read_h5ad(
+        adata_path, backed=False
+    )
     sdm.weight_matrix(
         adata, l=l, embedding=embedding, cutoff=cutoff, single_cell=single_cell,
         n_neighbors=n_neighbors, n_nearest_neighbors=n_nearest_neighbors

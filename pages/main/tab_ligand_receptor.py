@@ -370,7 +370,7 @@ def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
         raise Exception('sample or embedding empty')
 
     adata = anndata.read_h5ad(
-        sample, backed=False
+        sample, backed='r'
     )
 
     tid = ctx.triggered_id
@@ -381,9 +381,10 @@ def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
 
     if 'index' in tid and tid.index =='SELECTWITHCOLOR_ligand-LR':
         if ligand is not None:
+
             plot_ligand = plot_feature_embedding(
                 adata=adata,
-                preserved_cells=adata.obs_names.to_list(),
+                preserved_cells=adata.obs_names,
                 feature = ligand,
                 embedding=embedding,
             )
@@ -405,7 +406,7 @@ def update_corr_plot(sample, embedding, ligand, receptor, click_cal):
 
         if ligand is not None and receptor is not None:
             corr = bivariate_spatial_association(
-                adata=adata,
+                adata_path=sample,
                 ligand=ligand,
                 receptor=receptor,
                 single_cell=False,
