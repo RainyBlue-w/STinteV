@@ -47,9 +47,6 @@ dashapp.layout = dmc.MantineProvider(
 )
 def router(pathname, search):
     
-    # print(f'pathname:{pathname}, search:{search}')
-    
-    # / /login /reset_password
     # 过滤非法pathname
     if pathname not in RouterConfig.VALID_PATHNAME:
         return (

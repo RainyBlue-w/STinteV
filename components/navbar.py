@@ -2,7 +2,9 @@ import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from flask_login import current_user
-from dash_extensions.enrich import Output, Input, State, ClientsideFunction, clientside_callback
+from dash_extensions.enrich import Output, Input, State, ClientsideFunction, clientside_callback, callback
+from flask import send_from_directory
+from stintev.config import PathConfig
 
 class Navbar:
     
@@ -17,13 +19,24 @@ class Navbar:
                             style={'zoom': '120%'}
                         )
                     ),
+                ]),
+                dbc.Row([
                     dbc.Col(
                         dmc.NavLink(
                             label='Documentation', variant='filled', autoContrast=True, color='dark', active=True,
                             rightSection=DashIconify(icon='hugeicons:google-doc', width=24),
-                            href='https://rainyblue-w.github.io/STinteV/', target='_blank'
+                            href='https://rainyblue-w.github.io/STinteV/', target='_blank',
+                            className='navbar-NavLink'
                         ),     
-                    )
+                    ),
+                    dbc.Col(
+                        dmc.NavLink(
+                            label = 'Sample Data', variant='filled', autoContrast=True, color='dark', active=True,
+                            rightSection=DashIconify(icon='material-symbols:download-rounded', width=24),
+                            href='/download_sample/', target='_blank',
+                            className='navbar-NavLink'
+                        )
+                    ),
                 ], align='center'),
                 dbc.Row([
                     dbc.Col(
@@ -105,3 +118,4 @@ class Navbar:
                     )
                 ]
             )
+    

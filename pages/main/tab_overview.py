@@ -148,6 +148,23 @@ class TabOverview():
             value = 'control_linkage'
         )
 
+        self.control_colors = dmc.AccordionItem(
+            children = [
+                dmc.AccordionControl(
+                    dmc.Text('Colors', className='dmc-Text-accordionControl'),
+                ),
+                dmc.AccordionPanel(
+                    children=[
+                        dmc.Button(
+                            'Color settings', fullWidth=True, id='BUTTON_color_settings-overview',
+                            leftSection=DashIconify(icon='proicons:color-palette', width=24),
+                        )
+                    ]
+                ),
+            ],
+            value = 'Colors'
+        )
+        
         # sider in left
         self.sider = fac.Sider(
             collapsible = False,

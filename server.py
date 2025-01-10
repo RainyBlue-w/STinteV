@@ -4,7 +4,7 @@ from dash_extensions.enrich import DashProxy, LogTransform, ServersideOutputTran
 from dash_extensions.enrich import MultiplexerTransform, TriggerTransform, CycleBreakerTransform
 from dash_extensions.enrich import RedisCache, FileSystemCache, RedisBackend
 
-from flask import Flask
+from flask import send_from_directory, request
 from flask_login import LoginManager, current_user
 from flask import request
 from flask_mail import Mail
@@ -28,7 +28,6 @@ if BackendConfig.BACKGROUND_CALLBACK_ON:
         broker=f'redis://:{SecretConfig.REDIS_PASSWORD}@{RedisConfig.HOST}:{RedisConfig.PORT}/0', 
         backend=f'redis://:{SecretConfig.REDIS_PASSWORD}@{RedisConfig.HOST}:{RedisConfig.PORT}/0'
     )
-    print(celery_app)
     background_callback_manager = CeleryManager(
         celery_app, 
         # cache_by=[lambda: launch_uid], expire=CeleryConfig.EXPIRE_TIME
@@ -66,9 +65,6 @@ _external_scripts = [
   'https://cdnjs.cloudflare.com/ajax/libs/cookie-banner/1.2.2/cookiebanner.min.js',
   {'src': 'https://deno.land/x/corejs@v3.31.1/index.js', 'type': 'module'},
 ]
-
-# flask server
-server = Flask(__name__)
 
 dashapp = DashProxy(
   __name__,
@@ -178,3 +174,16 @@ def upload():
             f.write(chunk)
 
     return {'status': 'success', 'message': 'upload success', 'filename': filename}
+
+# download
+@dashapp.server.route('/download_public/', methods=['GET'])
+def download_public():
+    dataset = request.args.get('dataset')
+    file = request.args.get('file')
+    return send_from_directory(f'{PathConfig.DATA_PATH}/datasets/public/{dataset}', file)
+
+# download
+@dashapp.server.route('/download_sample/', methods=['GET'])
+def download_sample():
+    
+    return send_from_directory(PathConfig.DATA_PATH, PathConfig.SAMPLE_DATA)
