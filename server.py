@@ -79,6 +79,38 @@ dashapp = DashProxy(
   on_error = Notifications.handle_global_error
 )
 
+dashapp.index_string = '''
+<!DOCTYPE html>
+<html>
+    <script 
+        defer 
+        src="http://localhost:3000/random-string.js" 
+        data-website-id="1d5775bf-1485-4b2e-949e-1e23c8d9625d"
+        data-domains="www.stintev.site">
+    </script>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+        <script type="text/javascript" id="cookiebanner"
+            src="https://cdn.jsdelivr.net/gh/dobarkod/cookie-banner@1.2.2/dist/cookiebanner.min.js"
+            data-height="36px" data-position="bottom" data-font-size="18px"
+            data-close-text="Got it!"
+            data-message="We use cookies to preserve your session state, by using this website you agree to our use of cookies.">
+        </script>
+    </body>
+</html>
+'''
+
 # config
 
 dashapp.config.suppress_callback_exceptions = True
