@@ -82,15 +82,6 @@ dashapp = DashProxy(
 dashapp.index_string = '''
 <!DOCTYPE html>
 <html>
-    <script>
-    var _hmt = _hmt || [];
-    (function() {
-    var hm = document.createElement("script");
-    hm.src = "https://hm.baidu.com/hm.js?afcaf8eaef1c6a82ef6d1a928719988c";
-    var s = document.getElementsByTagName("script")[0]; 
-    s.parentNode.insertBefore(hm, s);
-    })();
-    </script>
     <head>
         {%metas%}
         <title>{%title%}</title>
