@@ -82,6 +82,7 @@ dashapp = DashProxy(
 dashapp.index_string = '''
 <!DOCTYPE html>
 <html>
+    <script defer src="http://localhost:3000/random-string.js" data-website-id="1d5775bf-1485-4b2e-949e-1e23c8d9625d"></script>
     <head>
         {%metas%}
         <title>{%title%}</title>
