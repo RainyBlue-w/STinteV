@@ -84,9 +84,10 @@ dashapp.index_string = '''
 <html>
     <script 
         defer 
-        src="http://localhost:3000/random-string.js" 
+        src="https://umami.stintev.site/random-string.js" 
         data-website-id="1d5775bf-1485-4b2e-949e-1e23c8d9625d"
         data-domains="www.stintev.site">
+    </script>
     </script>
     <head>
         {%metas%}

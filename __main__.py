@@ -32,6 +32,9 @@ else:
     app.mount("/", WSGIMiddleware(dashapp.server))
         
 if __name__ == "__main__":
+    
+    app = FastAPI(root_path='/stintev')
+    app.mount("/", WSGIMiddleware(dashapp.server))
     uvicorn.run(
         app,
         host = args.host,
