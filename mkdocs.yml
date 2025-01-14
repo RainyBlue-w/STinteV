@@ -6,7 +6,7 @@ repo_url: https://github.com/RainyBlue-w/STinteV
 
 theme:
   name: material
-  custom_dir: overrides
+  custom_dir: docs/overrides
   icon:
     repo: fontawesome/brands/github
 
