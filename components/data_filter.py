@@ -41,7 +41,12 @@ class DataFilter:
                             span=5
                         ),
                         dmc.GridCol(
-                            children=[],
+                            children=[
+                                # for `id doesn't exits` error
+                                fac.Fragment(id={'type': 'DataFilter_transfer', 'index': self._index}),
+                                fac.Fragment(id={'type': 'DataFilter_numberInput_left', 'index': self._index}),
+                                fac.Fragment(id={'type': 'DataFilter_numberInput_right', 'index': self._index}),
+                            ],
                             id={'type': 'DataFilter_filter_body', 'index': self._index}, 
                             span=12,
                         ),
@@ -59,9 +64,6 @@ class DataFilter:
                         )
                     ]
                 ),
-                # dmc.Space(h=5),
-                # dmc.Divider(variant='dashed'),
-                # dmc.Space(h=5),
             ]
         )
     
@@ -86,8 +88,8 @@ class DataFilter:
                         ),
                     ],
                 ),
-                # solve nonexistent id problem(callback)
-                html.Div(id={'type': 'DataFilter_transfer', 'index': index})
+                # # for `id doesn't exits` error
+                fac.Fragment(id={'type': 'DataFilter_transfer', 'index': index})
             ],
         )
     
@@ -102,8 +104,8 @@ class DataFilter:
                     targetKeys=[],
                     id={'type': 'DataFilter_transfer', 'index': index}
                 ),
-                # solve nonexistent id problem(callback)
-                html.Div(id={'type': 'DataFilter_numberInput_left', 'index': index}),
-                html.Div(id={'type': 'DataFilter_numberInput_right', 'index': index}),
+                # # for `id doesn't exits` error
+                fac.Fragment(id={'type': 'DataFilter_numberInput_left', 'index': index}),
+                fac.Fragment(id={'type': 'DataFilter_numberInput_right', 'index': index}),
             ]
         )

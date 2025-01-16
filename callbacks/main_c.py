@@ -839,7 +839,7 @@ def update_linked_panels_sample(
                             index_to_hlt = [ cat_B.index(cat) for cat in hlt_after if cat in cat_B]
                             return_highlightIndex[i] = index_to_hlt
             
-            
+        
             
         return_dict = {
             'samples': return_samples,

@@ -11,8 +11,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from typing import Dict, Tuple, List
-import uuid
-import re
 
 from stintev.utils._io import *
 from stintev.utils._plot import *
@@ -315,6 +313,10 @@ class PlotPanel:
                     # legend
                     dmc.GridCol(
                         html.Div(
+                            children=[
+                                # for `id doesn't exits` error
+                                fac.Fragment(id={'type': 'PlotPanel_item_categoriesChipGroup', 'index': self._index})
+                            ],
                             id={'type': 'PlotPanel_item_categoriesLegend', 'index': self._index}, 
                             style={'height': f'{self._height_plot_panel_item}px', 'overflow-y': 'auto'}
                         ),
@@ -379,6 +381,10 @@ def update_figure_traces_highlighting_on_catLegend_clicking(categories_selected,
     State({'type': 'PlotPanel_item_pointSize', 'index': MATCH}, 'value'), # cur point size
 )
 def update_catLegend_on_store_selectedCategories_index_change(selected_index, curCategories, pt_size):
+    
+    if selected_index is None:
+        raise PreventUpdate
+    
     patch_fig = Patch()
     for i in range(len(curCategories)):
         if i in selected_index:
@@ -398,6 +404,9 @@ def update_catLegend_on_store_selectedCategories_index_change(selected_index, cu
     State({'type': 'PlotPanel_store_curCategories', 'index': MATCH}, 'data'),
 )
 def controlChip_invert_clear_all(nClicks_invert, nClicks_clear, nClicks_all, selected_categories, curCategories):
+    
+    if not nClicks_invert or not nClicks_clear or not nClicks_all:
+        raise PreventUpdate
     
     tid = ctx.triggered_id
     
