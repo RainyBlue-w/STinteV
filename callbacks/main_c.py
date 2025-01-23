@@ -854,6 +854,59 @@ def update_linked_panels_sample(
     
     raise PreventUpdate
 
+@dashapp.callback( # 更新linkaged-filters
+    output = Output({'type': 'DataFilter_store_preserved_cells', 'index': ALL}, 'data'),
+    inputs = {
+        'linkages': {
+            'type': Input({'type': 'PanelLinkages_select_type', 'index': ALL}, 'value'),
+            'panels': Input({'type': 'PanelLinkages_select_linkage', 'index': ALL}, 'value'),
+            'if_apply': Input({'type': 'PanelLinkages_switch_apply', 'index': ALL}, 'checked'),
+        },
+        'preserved_cells': Input({'type': 'DataFilter_store_preserved_cells', 'index': ALL}, 'data'),
+        'plotPanel_uuids': State('STORE_plotPanelsCurUUID-overview', 'data'),
+    },
+    # background=True
+)
+def update_linkaged_filters(
+    linkages,
+    preserved_cells,
+    plotPanel_uuids,
+):
+
+    tid = ctx.triggered_id
+    
+    if tid and 'type' in tid and tid['type'].startswith('PanelLinkages_'): 
+        # linkages热改动触发
+        raise PreventUpdate # 暂时
+    
+    elif tid and 'type' in tid and tid['type'].startswith('DataFilter_'):
+        # DataFilter改动触发
+        if not any(linkages['if_apply']): # 至少有linkage在执行
+            raise PreventUpdate
+
+        panel_order = plotPanel_uuids.index(tid['index']) # 触发panel在队列中的位置
+        
+        if tid['type'] == 'DataFilter_store_preserved_cells':
+            
+            return_cells = [no_update]*len(plotPanel_uuids)
+            
+            for type, panels, apply in zip(linkages['type'], linkages['panels'], linkages['if_apply']):
+                if (apply is False) or (type is [None]) or (type is None): # 如果没有apply或者type没有选，跳过该条linkage
+                    continue
+                if tid['index'] not in panels: # 触发的panel没有在该条linkage被选中
+                    continue
+                
+                if 'filter' in type and len(panels) >= 2: # filter
+                    preserved_cells_to_set = preserved_cells[panel_order]
+                    return_cells[panel_order] = preserved_cells_to_set
+                    for i,uid in enumerate(plotPanel_uuids):
+                        if uid in panels and uid != tid['index']:
+                            return_cells[i] = preserved_cells_to_set
+
+        return return_cells
+
+    raise PreventUpdate
+
 #endregion
 
 #region filter
