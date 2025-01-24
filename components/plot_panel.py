@@ -405,10 +405,8 @@ def update_catLegend_on_store_selectedCategories_index_change(selected_index, cu
 )
 def controlChip_invert_clear_all(nClicks_invert, nClicks_clear, nClicks_all, selected_categories, curCategories):
     
-    if not nClicks_invert or not nClicks_clear or not nClicks_all:
-        raise PreventUpdate
-    
     tid = ctx.triggered_id
+    print(tid)
     
     if tid['type'] == 'PlotPanel_item_controlChip_invert' and nClicks_invert:
         return [cat for cat in curCategories if cat not in selected_categories]
