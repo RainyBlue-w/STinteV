@@ -10,11 +10,11 @@ class Notifications:
         set_props(
             'notifications-container',
             {
-                # 'children': [],
-                'children': fac.Message(
-                    content = f'id:{ctx.triggered_id}, error:{e}',
-                    type = 'error'
-                )
+                'children': [],
+                # 'children': fac.Message(
+                #     content = f'id:{ctx.triggered_id}, error:{e}',
+                #     type = 'error'
+                # )
             }
         ) 
     
