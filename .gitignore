@@ -6,3 +6,4 @@ testscripts/
 tests/
 config.py
 environ.sh
+*-workspace

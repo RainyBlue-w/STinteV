@@ -70,20 +70,27 @@ def add_delete_plot_panel(add, delete, uuid_list, choosen_dataset, path_server_f
             for i in choosen_dataset:
                 if len(i['choosen']) > 0 : 
                     for dataset in i['choosen']:
-                        options.append(
-                            {
-                                'group': f'{dataset}-{i["group"]}',
-                                'options': [
-                                    {
-                                        'label': adata,
-                                        'value': os.path.join(path_server_folder, 'datasets', i['group'], dataset, adata)
-                                    }
-                                    for adata in os.listdir(
-                                        os.path.join(path_server_folder, 'datasets', i['group'], dataset)
-                                    )
-                                ]
-                            }
-                        )
+                        
+                        if i['group'] == 'public':
+                            dataset_dir = os.path.join(path_server_folder, 'datasets', i['group'], dataset)
+                        elif i['group'] == 'private':
+                            dataset_dir = os.path.join(path_server_folder,'datasets',i['group'],current_user.id,dataset)
+                        else:
+                            raise ValueError('Dataset is not in public or private')
+                        
+                        if os.path.exists(dataset_dir):
+                            options.append(
+                                {
+                                    'group': f'{dataset}-{i["group"]}',
+                                    'options': [
+                                        {
+                                            'label': adata,
+                                            'value': os.path.join(dataset_dir, adata)
+                                        }
+                                        for adata in sorted( os.listdir(dataset_dir) )  if adata.endswith('.h5ad')
+                                    ]
+                                }
+                            )
             
             next_PlotPanel = PlotPanel(
                 uuid.uuid1().hex,

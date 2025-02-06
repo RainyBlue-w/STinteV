@@ -2,19 +2,25 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 import feffery_antd_components.alias as fac
 from dash import set_props, ctx
+from stintev.config import DevConfig
 
 class Notifications:
     
     @staticmethod
     def handle_global_error(e):
+        
+        if DevConfig.WRANING_REPORT is True:
+            notif = fac.Message(
+                content = f'id:{ctx.triggered_id}, error:{e}',
+                type = 'error'
+            )
+        else:
+            notif = []
+        
         set_props(
             'notifications-container',
             {
-                'children': [],
-                # 'children': fac.Message(
-                #     content = f'id:{ctx.triggered_id}, error:{e}',
-                #     type = 'error'
-                # )
+                'children': notif,
             }
         ) 
     
