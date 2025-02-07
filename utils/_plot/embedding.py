@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 
 from typing import List, Dict, Literal
 from pydantic import BaseModel
+from stintev.config import Colors
 
 # class for the verification of parameter passing
 class ParamsPlotFeatureEmbedding(BaseModel):
@@ -14,11 +15,7 @@ class ParamsPlotFeatureEmbedding(BaseModel):
     embedding: str
     sort: bool = True
     ascending: bool = True
-    cmap: List = [
-        (0.00, "#F4F4F4"),
-        (0.05, "#F4F4F4"),
-        (1.00, "#225EA8")
-    ]
+    cmap: List = Colors.DEFAULT_C
 
 class ParamsPlotMetadataEmbedding(BaseModel):
     column: str
@@ -34,11 +31,7 @@ def plot_feature_embedding(
     embedding: str,
     sort: bool = True,
     ascending: bool = True,
-    color_continuous_scale: List = [
-        (0.00, "#F4F4F4"),
-        (0.05, "#F4F4F4"),
-        (1.00, "#225EA8")
-    ],
+    color_continuous_scale: List = Colors.DEFAULT_C,
     marker_size: float = 2.0,
     legend_title: str | None = None,
     **kws
@@ -99,11 +92,7 @@ def _plot_feature_embedding_3d(
     embedding: str,
     sort: bool = True,
     ascending: bool = True,
-    cmap: List = [
-        (0.00, "#F4F4F4"),
-        (0.05, "#F4F4F4"),
-        (1.00, "#225EA8")
-    ],
+    cmap: List = Colors.DEFAULT_C,
     marker_size: float = 2.0,
     legend_title: str | None = None,
     **kws
@@ -165,7 +154,7 @@ def _plot_metadata_embedding_3d(
     preserved_cells: List,
     column: str,
     embedding: str,
-    color_continuous_scale: List = [ (0.00, "#F4F4F4"), (0.05, "#F4F4F4"), (1.00, "#225EA8") ],
+    color_continuous_scale: List = Colors.DEFAULT_C,
     color_discrete_map: Dict | None = None,
     marker_size: float = 2.0,
     column_type: Literal['categorical', 'continuous'] | None = None,
@@ -235,7 +224,7 @@ def _plot_embedding_2d(
     preserved_cells: List,
     column: str,
     embedding: str,
-    color_continuous_scale: List = [ (0.00, "#F4F4F4"), (0.05, "#F4F4F4"), (1.00, "#225EA8") ],
+    color_continuous_scale: List = Colors.DEFAULT_C,
     color_discrete_map: Dict | None = None,
     sort: bool = True,
     marker_size: float = 2.0,

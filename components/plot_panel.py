@@ -367,8 +367,10 @@ def update_figure_traces_highlighting_on_catLegend_clicking(categories_selected,
     for i in range(len(curCategories)):
         if curCategories[i] in categories_selected:
             patch_fig['data'][i]['marker']['size'] = pt_size
+            patch_fig['data'][i]['marker']['opacity'] = 1
         else:
             patch_fig['data'][i]['marker']['size'] = 0.001
+            patch_fig['data'][i]['marker']['opacity'] = 0.001
 
     return return_index, patch_fig
 
@@ -389,8 +391,10 @@ def update_catLegend_on_store_selectedCategories_index_change(selected_index, cu
     for i in range(len(curCategories)):
         if i in selected_index:
             patch_fig['data'][i]['marker']['size'] = pt_size
+            patch_fig['data'][i]['marker']['opacity'] = 1
         else:
             patch_fig['data'][i]['marker']['size'] = 0.001
+            patch_fig['data'][i]['marker']['opacity'] = 0.001
     return patch_fig, [curCategories[idx] for idx in selected_index]
 
 @callback(  # legend invert, clear, all
